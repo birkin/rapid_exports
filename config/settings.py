@@ -1,8 +1,8 @@
 """
-Django settings for django_template_project.
+Django settings for `rapid_project`.
 
-Environmental variables triggered in project's env_min_djng/bin/activate, when using runserver,
-  or env_min_djng/bin/activate_this.py, when using apache via passenger.
+Environmental variables triggered in project's env_rpd/bin/activate, when using runserver,
+  or env_rpd/bin/activate_this.py, when using apache via passenger.
 """
 
 import json, os
@@ -37,7 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'app_x',
+    'rapid_app',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -132,7 +132,7 @@ LOGGING = {
         },
     },
     'loggers': {
-        'app_x': {
+        'rapid_app': {
             'handlers': ['logfile'],
             'level': os.environ.get(u'RAPID__LOG_LEVEL'),
         },
