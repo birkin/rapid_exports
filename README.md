@@ -2,6 +2,6 @@
 
 UNDER CONSTRUCTION
 
-Minimalist [passenger](https://www.phusionpassenger.com)-compatible [django](https://www.djangoproject.com) project.
+Provides a web-interface to initiate and monitor a few rapid-admin tasks.
 
 ---
