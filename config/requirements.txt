@@ -1,2 +1,4 @@
-Django==1.8.4
+Django==1.8.7
+paramiko==1.16.0
+PyMySQL==0.6.7
 shellvars-py==0.1.2

@@ -15,16 +15,16 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['DJANGO_TEMPLATE__SECRET_KEY']
+SECRET_KEY = os.environ['RAPID__SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-temp_DEBUG = json.loads( os.environ['DJANGO_TEMPLATE__DEBUG_JSON'] )
+temp_DEBUG = json.loads( os.environ['RAPID__DEBUG_JSON'] )
 assert temp_DEBUG in [ True, False ], Exception( 'DEBUG env setting is, "%s"' )
 DEBUG = temp_DEBUG
 
 TEMPLATE_DEBUG = DEBUG
 
-ALLOWED_HOSTS = json.loads( os.environ['DJANGO_TEMPLATE__ALLOWED_HOSTS'] )  # list
+ALLOWED_HOSTS = json.loads( os.environ['RAPID__ALLOWED_HOSTS'] )  # list
 
 
 # Application definition
@@ -59,12 +59,12 @@ WSGI_APPLICATION = 'config.passenger_wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': os.environ['DJANGO_TEMPLATE__DATABASES_ENGINE'],
-        'NAME': os.environ['DJANGO_TEMPLATE__DATABASES_NAME'],
-        'USER': os.environ['DJANGO_TEMPLATE__DATABASES_USER'],
-        'PASSWORD': os.environ['DJANGO_TEMPLATE__DATABASES_PASSWORD'],
-        'HOST': os.environ['DJANGO_TEMPLATE__DATABASES_HOST'],
-        'PORT': os.environ['DJANGO_TEMPLATE__DATABASES_PORT'],
+        'ENGINE': os.environ['RAPID__DATABASES_ENGINE'],
+        'NAME': os.environ['RAPID__DATABASES_NAME'],
+        'USER': os.environ['RAPID__DATABASES_USER'],
+        'PASSWORD': os.environ['RAPID__DATABASES_PASSWORD'],
+        'HOST': os.environ['RAPID__DATABASES_HOST'],
+        'PORT': os.environ['RAPID__DATABASES_PORT'],
     }
 }
 
@@ -86,18 +86,18 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
-STATIC_URL = os.environ['DJANGO_TEMPLATE__STATIC_URL']
-STATIC_ROOT = os.environ['DJANGO_TEMPLATE__STATIC_ROOT']  # needed for collectstatic command
+STATIC_URL = os.environ['RAPID__STATIC_URL']
+STATIC_ROOT = os.environ['RAPID__STATIC_ROOT']  # needed for collectstatic command
 
 
 # Templates
 
-TEMPLATE_DIRS = json.loads( os.environ['DJANGO_TEMPLATE__TEMPLATE_DIRS'] )  # list
+TEMPLATE_DIRS = json.loads( os.environ['RAPID__TEMPLATE_DIRS'] )  # list
 
 
 # Email
-EMAIL_HOST = os.environ['DJANGO_TEMPLATE__EMAIL_HOST']
-EMAIL_PORT = int( os.environ['DJANGO_TEMPLATE__EMAIL_PORT'] )
+EMAIL_HOST = os.environ['RAPID__EMAIL_HOST']
+EMAIL_PORT = int( os.environ['RAPID__EMAIL_PORT'] )
 
 
 # sessions
@@ -122,7 +122,7 @@ LOGGING = {
         'logfile': {
             'level':'DEBUG',
             'class':'logging.FileHandler',  # note: configure server to use system's log-rotate to avoid permissions issues
-            'filename': os.environ.get(u'DJANGO_TEMPLATE__LOG_PATH'),
+            'filename': os.environ.get(u'RAPID__LOG_PATH'),
             'formatter': 'standard',
         },
         'console':{
@@ -134,8 +134,7 @@ LOGGING = {
     'loggers': {
         'app_x': {
             'handlers': ['logfile'],
-            'level': os.environ.get(u'DJANGO_TEMPLATE__LOG_LEVEL'),
+            'level': os.environ.get(u'RAPID__LOG_LEVEL'),
         },
     }
 }
-
