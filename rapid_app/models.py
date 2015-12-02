@@ -13,6 +13,26 @@ from django.utils.text import slugify
 log = logging.getLogger(__name__)
 
 
+class RapidFileGrabber( object ):
+    """ Access Rapid's prepared file.
+        Not-django class. """
+
+    def __init__( self, remote_server_name, remote_server_username, remote_server_password, remote_filepath, local_destination_filepath ):
+        self.remote_server_name = remote_server_name
+        self.remote_server_username = remote_server_username
+        self.remote_server_password = remote_server_password
+        self.remote_filepath = remote_filepath
+        self.local_destination_filepath = local_destination_filepath
+
+    def grab_file( self ):
+        """ Grabs file.
+            Will be called via view. """
+        log.debug( 'starting grab_file()' )
+        return 'foo'
+
+    # end class RapidFileGrabber
+
+
 class RapidProcessor( object ):
     """ Handles processing of file from Rapid.
         Non-django class. """
@@ -24,7 +44,8 @@ class RapidProcessor( object ):
 
     def parse_file_from_rapid( self ):
         """ Extracts print holdings from the file-from-rapid.
-            That file contains both print and online holdings. """
+            That file contains both print and online holdings.
+            Will be called via view. """
         if self.check_utf8() is False:
             self.make_utf8()
 
@@ -57,3 +78,5 @@ class RapidProcessor( object ):
                         print '- error, `%s`; line, `%s`' % ( unicode(repr(e)), unicode(repr(line)) )
         shutil.move( self.from_rapid_temp_filepath, self.from_rapid_filepath )  # (from, to)
         return
+
+    # end class RapidProcessor
