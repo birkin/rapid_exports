@@ -50,6 +50,15 @@ class RapidFileGrabber( object ):
             ftp.dir( file_list2.append )
             log.debug( 'file_list2, ```%s```' % pprint.pformat(file_list2) )
 
+            log.debug( 'starting actual transfer' )
+            log.debug( 'self.local_destination_filepath, `%s`' % self.local_destination_filepath )
+            f = open( self.local_destination_filepath, 'w' )
+            log.debug( 'file opened for writing' )
+            ftp.retrbinary( "RETR " + 'cronoutput.txt', f.write )
+            log.debug( 'write completed' )
+            f.close()
+            log.debug( 'write-file closed' )
+
         except Exception as e:
             log.error( 'exception, `%s`' % unicode(repr(e)) )
         finally:

@@ -17,7 +17,7 @@ class RapidFileGrabberTest( TestCase ):
             settings_app.TEST_REMOTE_SERVER_USERNAME,
             settings_app.TEST_REMOTE_SERVER_PASSWORD,
             settings_app.TEST_REMOTE_FILEPATH,
-            ""
+            settings_app.TEST_LOCAL_DESTINATION_FILEPATH,
             )
         self.assertEqual(
             42,
