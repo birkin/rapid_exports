@@ -13,9 +13,10 @@ class RapidFileGrabberTest( TestCase ):
         """ Tests grab of remote file. """
         grabber = RapidFileGrabber(
             settings_app.TEST_REMOTE_SERVER_NAME,
+            settings_app.TEST_REMOTE_SERVER_PORT,
             settings_app.TEST_REMOTE_SERVER_USERNAME,
             settings_app.TEST_REMOTE_SERVER_PASSWORD,
-            "",
+            settings_app.TEST_REMOTE_FILEPATH,
             ""
             )
         self.assertEqual(

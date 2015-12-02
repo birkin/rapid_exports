@@ -2,7 +2,8 @@
 
 from __future__ import unicode_literals
 
-import codecs, csv, datetime, itertools, json, logging, os, pprint, shutil
+import codecs, csv, datetime, ftplib, itertools, json, logging, os, pprint, shutil
+import paramiko
 from django.conf import settings as project_settings
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -14,11 +15,12 @@ log = logging.getLogger(__name__)
 
 
 class RapidFileGrabber( object ):
-    """ Access Rapid's prepared file.
+    """ Transfers Rapid's prepared file from remote to local location.
         Not-django class. """
 
-    def __init__( self, remote_server_name, remote_server_username, remote_server_password, remote_filepath, local_destination_filepath ):
+    def __init__( self, remote_server_name, remote_server_port, remote_server_username, remote_server_password, remote_filepath, local_destination_filepath ):
         self.remote_server_name = remote_server_name
+        self.remote_server_port = remote_server_port
         self.remote_server_username = remote_server_username
         self.remote_server_password = remote_server_password
         self.remote_filepath = remote_filepath
@@ -28,7 +30,51 @@ class RapidFileGrabber( object ):
         """ Grabs file.
             Will be called via view. """
         log.debug( 'starting grab_file()' )
-        return 'foo'
+        ftp = None
+        try:
+            ftp = ftplib.FTP( self.remote_server_name )
+            log.debug( 'ftp.__dict__ after instantiation, ```%s```' % pprint.pformat(ftp.__dict__) )
+
+            ftp.login( self.remote_server_username, self.remote_server_password )
+            log.debug( 'ftp.__dict__ after login, ```%s```' % pprint.pformat(ftp.__dict__) )
+
+            log.debug( 'current directory, `%s`' % ftp.pwd() )
+            file_list = []
+            ftp.dir( file_list.append )
+            log.debug( 'file_list, ```%s```' % pprint.pformat(file_list) )
+
+            log.debug( 'self.remote_filepath, `%s`' % self.remote_filepath )
+            file_list2 = []
+            ftp.cwd( self.remote_filepath )
+            log.debug( 'updated current directory, `%s`' % ftp.pwd() )
+            ftp.dir( file_list2.append )
+            log.debug( 'file_list2, ```%s```' % pprint.pformat(file_list2) )
+
+        except Exception as e:
+            log.error( 'exception, `%s`' % unicode(repr(e)) )
+        finally:
+            ftp.quit()
+        return 'foo2'
+
+    # def grab_file( self ):
+    #     """ Grabs file.
+    #         Will be called via view.
+    #         Doesn't work -- paramiko only works via SFTP, not FTP and not FTP over SSL. """
+    #     log.debug( 'starting grab_file()' )
+    #     ( ftp, transport ) = ( None, None )
+    #     try:
+    #         transport = paramiko.Transport( (self.remote_server_name, self.remote_server_port) )
+    #         log.debug( 'transport.__dict__ after instantiation, ```%s```' % pprint.pformat(transport.__dict__) )
+    #         transport.connect( username=self.remote_server_username, password=self.remote_server_password )
+    #         log.debug( 'transport.__dict__ after connection, ```%s```' % pprint.pformat(transport.__dict__) )
+    #         ftp = paramiko.SFTPClient.from_transport( transport )
+    #         log.debug( 'ftp.__dict__, ```%s```' % pprint.pformat(ftp.__dict__) )
+    #     except Exception as e:
+    #         log.error( 'exception, `%s`' % unicode(repr(e)) )
+    #     finally:
+    #         ftp.close()
+    #         transport.close()
+    #     return 'foo'
 
     # end class RapidFileGrabber
 
