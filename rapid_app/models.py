@@ -43,47 +43,37 @@ class RapidFileGrabber( object ):
             ftp.dir( file_list.append )
             log.debug( 'file_list, ```%s```' % pprint.pformat(file_list) )
 
-            log.debug( 'self.remote_filepath, `%s`' % self.remote_filepath )
-            file_list2 = []
-            ftp.cwd( self.remote_filepath )
-            log.debug( 'updated current directory, `%s`' % ftp.pwd() )
-            ftp.dir( file_list2.append )
-            log.debug( 'file_list2, ```%s```' % pprint.pformat(file_list2) )
-
             log.debug( 'starting actual transfer' )
+            log.debug( 'self.remote_filepath, `%s`' % self.remote_filepath )
             log.debug( 'self.local_destination_filepath, `%s`' % self.local_destination_filepath )
-            f = open( self.local_destination_filepath, 'w' )
+            f = open( self.local_destination_filepath, 'wb' )
             log.debug( 'file opened for writing' )
-            ftp.retrbinary( "RETR " + 'cronoutput.txt', f.write )
+            ftp.retrbinary( "RETR " + self.remote_filepath, f.write )
             log.debug( 'write completed' )
             f.close()
             log.debug( 'write-file closed' )
+
+            # log.debug( 'self.remote_filepath, `%s`' % self.remote_filepath )
+            # file_list2 = []
+            # ftp.cwd( self.remote_filepath )
+            # log.debug( 'updated current directory, `%s`' % ftp.pwd() )
+            # ftp.dir( file_list2.append )
+            # log.debug( 'file_list2, ```%s```' % pprint.pformat(file_list2) )
+
+            # log.debug( 'starting actual transfer' )
+            # log.debug( 'self.local_destination_filepath, `%s`' % self.local_destination_filepath )
+            # f = open( self.local_destination_filepath, 'w' )
+            # log.debug( 'file opened for writing' )
+            # ftp.retrbinary( "RETR " + 'cronoutput.txt', f.write )
+            # log.debug( 'write completed' )
+            # f.close()
+            # log.debug( 'write-file closed' )
 
         except Exception as e:
             log.error( 'exception, `%s`' % unicode(repr(e)) )
         finally:
             ftp.quit()
         return 'foo2'
-
-    # def grab_file( self ):
-    #     """ Grabs file.
-    #         Will be called via view.
-    #         Doesn't work -- paramiko only works via SFTP, not FTP and not FTP over SSL. """
-    #     log.debug( 'starting grab_file()' )
-    #     ( ftp, transport ) = ( None, None )
-    #     try:
-    #         transport = paramiko.Transport( (self.remote_server_name, self.remote_server_port) )
-    #         log.debug( 'transport.__dict__ after instantiation, ```%s```' % pprint.pformat(transport.__dict__) )
-    #         transport.connect( username=self.remote_server_username, password=self.remote_server_password )
-    #         log.debug( 'transport.__dict__ after connection, ```%s```' % pprint.pformat(transport.__dict__) )
-    #         ftp = paramiko.SFTPClient.from_transport( transport )
-    #         log.debug( 'ftp.__dict__, ```%s```' % pprint.pformat(ftp.__dict__) )
-    #     except Exception as e:
-    #         log.error( 'exception, `%s`' % unicode(repr(e)) )
-    #     finally:
-    #         ftp.close()
-    #         transport.close()
-    #     return 'foo'
 
     # end class RapidFileGrabber
 
