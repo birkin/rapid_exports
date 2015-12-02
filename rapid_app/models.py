@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 
 import codecs, csv, datetime, ftplib, itertools, json, logging, os, pprint, shutil
-import paramiko
 from django.conf import settings as project_settings
 from django.core.urlresolvers import reverse
 from django.db import models
