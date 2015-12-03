@@ -6,11 +6,29 @@ import codecs, csv, datetime, ftplib, itertools, json, logging, os, pprint, shut
 from django.conf import settings as project_settings
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.encoding import smart_unicode
 from django.utils.text import slugify
 
 log = logging.getLogger(__name__)
+
+
+class TasksHelper( object ):
+    """ Manages tasks url work. """
+
+    def make_context( self, request ):
+        """ Prepares data.
+            Called by views.tasks() """
+        d = { 'foo': 'bar' }
+        return d
+
+    def make_response( self, data ):
+        """ Prepares response.
+            Called by views.tasks() """
+        output = json.dumps( data, sort_keys=True, indent=2 )
+        return HttpResponse( output, content_type=u'application/javascript; charset=utf-8' )
+
+    # end class TasksHelper
 
 
 class RapidFileGrabber( object ):

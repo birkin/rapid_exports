@@ -7,8 +7,17 @@ from django.contrib.auth import logout
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
+from rapid_app.models import TasksHelper
 
 log = logging.getLogger(__name__)
+tasks_hlpr = TasksHelper()
+
+
+def tasks( request ):
+    """ Shows tasks window. """
+    data = tasks_hlpr.make_context( request )
+    response = tasks_hlpr.make_response( data )
+    return response
 
 
 def hi( request ):
