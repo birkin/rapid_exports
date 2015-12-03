@@ -7,6 +7,7 @@ from django.conf import settings as project_settings
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render
 from django.utils.encoding import smart_unicode
 from django.utils.text import slugify
 
@@ -14,7 +15,8 @@ log = logging.getLogger(__name__)
 
 
 class TasksHelper( object ):
-    """ Manages tasks url work. """
+    """ Manages tasks url work.
+        Non-django class. """
 
     def make_context( self, request ):
         """ Prepares data.
@@ -22,11 +24,15 @@ class TasksHelper( object ):
         d = { 'foo': 'bar' }
         return d
 
-    def make_response( self, data ):
+    def make_response( self, request, data ):
         """ Prepares response.
             Called by views.tasks() """
-        output = json.dumps( data, sort_keys=True, indent=2 )
-        return HttpResponse( output, content_type=u'application/javascript; charset=utf-8' )
+        if request.GET.get( 'format' ) == 'json':
+            output = json.dumps( data, sort_keys=True, indent=2 )
+            resp = HttpResponse( output, content_type=u'application/javascript; charset=utf-8' )
+        else:
+            resp = render( request, 'rapid_app_templates/tasks.html', data )
+        return resp
 
     # end class TasksHelper
 

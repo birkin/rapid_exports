@@ -16,7 +16,7 @@ tasks_hlpr = TasksHelper()
 def tasks( request ):
     """ Shows tasks window. """
     data = tasks_hlpr.make_context( request )
-    response = tasks_hlpr.make_response( data )
+    response = tasks_hlpr.make_response( request, data )
     return response
 
 
