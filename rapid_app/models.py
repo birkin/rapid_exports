@@ -10,6 +10,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.encoding import smart_unicode
 from django.utils.text import slugify
+from rapid_app import settings_app
 
 log = logging.getLogger(__name__)
 
@@ -21,9 +22,24 @@ class ProcessFileFromRapidHelper( object ):
     def initiate_work( self, request ):
         """ Initiates work.
             Called by views.process_file_from_rapid() """
-        log.debug( 'working working' )
-        time.sleep( 3 )
+        log.debug( 'starting processing' )
+        grabber = self._setup_grabber()
+        grabber.grab_file()
+        grabber.unzip_file()
         return
+
+    def _setup_grabber( self ):
+        """ Initializes grabber.
+            Called by initiate_work() """
+        grabber = RapidFileGrabber(
+            settings_app.REMOTE_SERVER_NAME,
+            settings_app.REMOTE_SERVER_USERNAME,
+            settings_app.REMOTE_SERVER_PASSWORD,
+            settings_app.REMOTE_FILEPATH,
+            settings_app.LOCAL_DESTINATION_FILEPATH,
+            settings_app.ZIPFILE_EXTRACT_DIR_PATH,
+            )
+        return grabber
 
     def make_response( self, request ):
         """ Prepares response.
@@ -41,6 +57,7 @@ class TasksHelper( object ):
     def make_context( self, request ):
         """ Prepares data.
             Called by views.tasks() """
+        log.debug( 'starting tasks' )
         d = {
                 'process_file_from_rapid_url': reverse('process_file_from_rapid_url'),
                 'history': [
