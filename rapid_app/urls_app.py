@@ -11,6 +11,8 @@ urlpatterns = patterns('',
 
     url( r'^tasks/$',  'rapid_app.views.tasks', name='tasks_url' ),
 
+    url( r'^tasks/process_file_from_rapid/$',  'rapid_app.views.process_file_from_rapid', name='process_file_from_rapid_url' ),
+
     url( r'^$',  RedirectView.as_view(pattern_name='info_url') ),
 
     )

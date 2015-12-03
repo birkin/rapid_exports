@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-import codecs, csv, datetime, ftplib, itertools, json, logging, os, pprint, shutil, zipfile
+import codecs, csv, datetime, ftplib, itertools, json, logging, os, pprint, shutil, time, zipfile
 from django.conf import settings as project_settings
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -14,6 +14,26 @@ from django.utils.text import slugify
 log = logging.getLogger(__name__)
 
 
+class ProcessFileFromRapidHelper( object ):
+    """ Manages process_file_from_rapid url work.
+        Non-django class. """
+
+    def initiate_work( self, request ):
+        """ Initiates work.
+            Called by views.process_file_from_rapid() """
+        log.debug( 'working working' )
+        time.sleep( 3 )
+        return
+
+    def make_response( self, request ):
+        """ Prepares response.
+            Called by views.process_file_from_rapid() """
+        resp = HttpResponseRedirect( reverse('tasks_url') )
+        return resp
+
+    # end class ProcessFileFromRapidHelper
+
+
 class TasksHelper( object ):
     """ Manages tasks url work.
         Non-django class. """
@@ -22,6 +42,7 @@ class TasksHelper( object ):
         """ Prepares data.
             Called by views.tasks() """
         d = {
+                'process_file_from_rapid_url': reverse('process_file_from_rapid_url'),
                 'history': [
                     { 'date': 'the date', 'user': 'the user A', 'task': 'the task', 'status': 'the status' },
                     { 'date': 'the older date', 'user': 'the user B', 'task': 'the task', 'status': 'the status' },
