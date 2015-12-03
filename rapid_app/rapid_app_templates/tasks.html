@@ -27,6 +27,17 @@ Rapid Manager - tasks
 
 <h1 id="history">history</h1>
 
+
+{% for record in history %}
+<div class="record">
+<p class="date">date: {{ record.date }}</p>
+    <li>user: {{ record.user }}</li>
+    <li>task: {{ record.task }}</li>
+    <li>status: {{ record.status }}</li>
+</div>
+{% endfor %}
+
+
 <hr/>
 
 {% endblock content %}

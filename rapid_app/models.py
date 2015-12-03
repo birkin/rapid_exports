@@ -23,8 +23,8 @@ class TasksHelper( object ):
             Called by views.tasks() """
         d = {
                 'history': [
-                    { 'date': 'the date', 'user': 'the user', 'task': 'the task', 'status': 'the status' },
-                    { 'older_date': 'the date', 'user': 'the user', 'task': 'the task', 'status': 'the status' },
+                    { 'date': 'the date', 'user': 'the user A', 'task': 'the task', 'status': 'the status' },
+                    { 'date': 'the older date', 'user': 'the user B', 'task': 'the task', 'status': 'the status' },
                     ]
                 }
         return d
