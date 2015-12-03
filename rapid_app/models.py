@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-import codecs, csv, datetime, ftplib, itertools, json, logging, os, pprint, shutil
+import codecs, csv, datetime, ftplib, itertools, json, logging, os, pprint, shutil, zipfile
 from django.conf import settings as project_settings
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -17,62 +17,36 @@ class RapidFileGrabber( object ):
     """ Transfers Rapid's prepared file from remote to local location.
         Not-django class. """
 
-    def __init__( self, remote_server_name, remote_server_port, remote_server_username, remote_server_password, remote_filepath, local_destination_filepath ):
+    def __init__( self, remote_server_name, remote_server_username, remote_server_password, remote_filepath, local_destination_filepath, local_destination_extract_directory ):
         self.remote_server_name = remote_server_name
-        self.remote_server_port = remote_server_port
         self.remote_server_username = remote_server_username
         self.remote_server_password = remote_server_password
         self.remote_filepath = remote_filepath
         self.local_destination_filepath = local_destination_filepath
+        self.local_destination_extract_directory = local_destination_extract_directory
 
     def grab_file( self ):
         """ Grabs file.
             Will be called via view. """
         log.debug( 'starting grab_file()' )
-        ftp = None
         try:
             ftp = ftplib.FTP( self.remote_server_name )
-            log.debug( 'ftp.__dict__ after instantiation, ```%s```' % pprint.pformat(ftp.__dict__) )
-
             ftp.login( self.remote_server_username, self.remote_server_password )
-            log.debug( 'ftp.__dict__ after login, ```%s```' % pprint.pformat(ftp.__dict__) )
-
-            log.debug( 'current directory, `%s`' % ftp.pwd() )
-            file_list = []
-            ftp.dir( file_list.append )
-            log.debug( 'file_list, ```%s```' % pprint.pformat(file_list) )
-
-            log.debug( 'starting actual transfer' )
-            log.debug( 'self.remote_filepath, `%s`' % self.remote_filepath )
-            log.debug( 'self.local_destination_filepath, `%s`' % self.local_destination_filepath )
             f = open( self.local_destination_filepath, 'wb' )
-            log.debug( 'file opened for writing' )
             ftp.retrbinary( "RETR " + self.remote_filepath, f.write )
-            log.debug( 'write completed' )
             f.close()
-            log.debug( 'write-file closed' )
-
-            # log.debug( 'self.remote_filepath, `%s`' % self.remote_filepath )
-            # file_list2 = []
-            # ftp.cwd( self.remote_filepath )
-            # log.debug( 'updated current directory, `%s`' % ftp.pwd() )
-            # ftp.dir( file_list2.append )
-            # log.debug( 'file_list2, ```%s```' % pprint.pformat(file_list2) )
-
-            # log.debug( 'starting actual transfer' )
-            # log.debug( 'self.local_destination_filepath, `%s`' % self.local_destination_filepath )
-            # f = open( self.local_destination_filepath, 'w' )
-            # log.debug( 'file opened for writing' )
-            # ftp.retrbinary( "RETR " + 'cronoutput.txt', f.write )
-            # log.debug( 'write completed' )
-            # f.close()
-            # log.debug( 'write-file closed' )
-
+            ftp.quit()
         except Exception as e:
             log.error( 'exception, `%s`' % unicode(repr(e)) )
-        finally:
-            ftp.quit()
-        return 'foo2'
+        return
+
+    def unzip_file( self ):
+        """ Unzips file.
+            Will be called via view. """
+        log.debug( 'starting unzip' )
+        zip_ref = zipfile.ZipFile( self.local_destination_filepath )
+        zip_ref.extractall( self.local_destination_extract_directory )
+        return
 
     # end class RapidFileGrabber
 
