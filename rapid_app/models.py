@@ -118,13 +118,13 @@ class RapidFileGrabber( object ):
     # end class RapidFileGrabber
 
 
-class RapidProcessor( object ):
+class RapidFileProcessor( object ):
     """ Handles processing of file from Rapid.
         Non-django class. """
 
-    def __init__(self):
+    def __init__(self, from_rapid_filepath, temp_utf8_filepath ):
         self.from_rapid_filepath = unicode( os.environ['RAPID__FROM_RAPID_FILEPATH'] )  # actual initial file from rapid
-        self.from_rapid_temp_filepath = unicode( os.environ['RAPID__FROM_RAPID_TEMP_FILEPATH'] )  # temp path in case we need to convert original file to utf8
+        self.from_rapid_utf8_filepath = unicode( os.environ['RAPID__FROM_RAPID_UTF8_FILEPATH'] )  # temp path in case we need to convert original file to utf8
         self.print_dct = {}
 
     def parse_file_from_rapid( self ):
@@ -145,8 +145,7 @@ class RapidProcessor( object ):
                     pass
                 utf8 = True
             except Exception as e:
-                # log.debug( 'exception, `%s`' % e )
-                print 'exception, `%s`' % e
+                log.error( 'exception, `%s`' % unicode(repr(e)) )
         return utf8
 
     def make_utf8( self ):

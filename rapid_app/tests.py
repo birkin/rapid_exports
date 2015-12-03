@@ -4,14 +4,14 @@ from __future__ import unicode_literals
 import os
 from django.test import TestCase
 from rapid_app import settings_app
-from rapid_app.models import RapidFileGrabber
+from rapid_app.models import RapidFileGrabber, RapidFileProcessor
 
 
 class RapidFileGrabberTest( TestCase ):
     """ Tests models.RapidFileGrabber() """
 
     def setUp( self ):
-        """ Ensures test-file doesn't exist locally. """
+        """ Runs initialization; ensures test-file doesn't exist locally. """
         assert os.path.isfile( settings_app.TEST_LOCAL_DESTINATION_FILEPATH ) == False
         self.grabber = RapidFileGrabber(
             settings_app.TEST_REMOTE_SERVER_NAME,
@@ -43,3 +43,24 @@ class RapidFileGrabberTest( TestCase ):
             os.remove( settings_app.TEST_LOCAL_DESTINATION_FILEPATH )
 
     # end RapidFileGrabberTest
+
+
+class RapidFileProcessorTest( TestCase ):
+    """ Tests models.RapidFileProcessor """
+
+    def setUp( self ):
+        """ Runs initialization; ensures test-file doesn't exist locally. """
+        self.processor = RapidFileProcessor(
+            settings_app.TEST_FROM_RAPID_FILEPATH,
+            settings_app.TEST_FROM_RAPID_UTF8_FILEPATH,
+            )
+
+    def test__check_utf8_before( self ):
+        """ Tests detection of non-utf8 data. """
+        self.assertEqual(
+            False,
+            self.processor.check_utf8()
+            )
+
+
+## end ##
