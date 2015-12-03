@@ -21,7 +21,12 @@ class TasksHelper( object ):
     def make_context( self, request ):
         """ Prepares data.
             Called by views.tasks() """
-        d = { 'foo': 'bar' }
+        d = {
+                'history': [
+                    { 'date': 'the date', 'user': 'the user', 'task': 'the task', 'status': 'the status' },
+                    { 'older_date': 'the date', 'user': 'the user', 'task': 'the task', 'status': 'the status' },
+                    ]
+                }
         return d
 
     def make_response( self, request, data ):
