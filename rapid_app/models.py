@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 
 class ProcessFileFromRapidHelper( object ):
-    """ Manages process_file_from_rapid url work.
+    """ Manages view.process_file_from_rapid() work.
         Non-django class. """
 
     def initiate_work( self, request ):
@@ -51,7 +51,7 @@ class ProcessFileFromRapidHelper( object ):
 
 
 class TasksHelper( object ):
-    """ Manages tasks url work.
+    """ Manages view.tasks() work.
         Non-django class. """
 
     def make_context( self, request ):
@@ -122,10 +122,9 @@ class RapidFileProcessor( object ):
     """ Handles processing of file from Rapid.
         Non-django class. """
 
-    def __init__(self, from_rapid_filepath, temp_utf8_filepath ):
-        self.from_rapid_filepath = unicode( os.environ['RAPID__FROM_RAPID_FILEPATH'] )  # actual initial file from rapid
-        self.from_rapid_utf8_filepath = unicode( os.environ['RAPID__FROM_RAPID_UTF8_FILEPATH'] )  # temp path in case we need to convert original file to utf8
-        self.print_dct = {}
+    def __init__(self, from_rapid_filepath, from_rapid_utf8_filepath ):
+        self.from_rapid_filepath = from_rapid_filepath  # actual initial file from rapid
+        self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
 
     def parse_file_from_rapid( self ):
         """ Extracts print holdings from the file-from-rapid.
@@ -134,12 +133,14 @@ class RapidFileProcessor( object ):
         if self.check_utf8() is False:
             self.make_utf8()
 
-    def check_utf8( self ):
+    def check_utf8( self, filepath=None ):
         """ Ensures file is utf-8 readable.
             Will error and return False if not.
             Called by parse_file_from_rapid() """
+        path = filepath if filepath else self.from_rapid_filepath
+        log.debug( 'checked path, `%s`' % path )
         utf8 = False
-        with codecs.open( self.from_rapid_filepath, 'rb', 'utf-8' ) as myfile:
+        with codecs.open( path, 'rb', 'utf-8' ) as myfile:
             try:
                 for line in myfile:  # reads line-by-line; doesn't tax memory on big files
                     pass
@@ -151,16 +152,14 @@ class RapidFileProcessor( object ):
     def make_utf8( self ):
         """ Iterates through each line; ensures it can be converted to utf-8.
             Called by parse_file_from_rapid() """
-        shutil.copy( self.from_rapid_filepath, '%s.backup' % self.from_rapid_filepath )  # backing up (from, to)
         with codecs.open( self.from_rapid_filepath, 'rb', 'utf-16' ) as input_file:
-            with open( self.from_rapid_temp_filepath, 'wb' ) as output_file:
+            with open( self.from_rapid_utf8_filepath, 'wb' ) as output_file:
                 for line in input_file:
                     assert( type(line) == unicode )
                     try:
                         output_file.write( line.encode('utf-8') )
                     except Exception as e:
-                        print '- error, `%s`; line, `%s`' % ( unicode(repr(e)), unicode(repr(line)) )
-        shutil.move( self.from_rapid_temp_filepath, self.from_rapid_filepath )  # (from, to)
+                        log.error( 'exception, `%s`' % unicode(repr(e)) )
         return
 
     # end class RapidProcessor

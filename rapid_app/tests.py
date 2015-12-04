@@ -62,5 +62,12 @@ class RapidFileProcessorTest( TestCase ):
             self.processor.check_utf8()
             )
 
+    def test__check_utf8_after( self ):
+        """ Tests detection of utf8 data. """
+        self.processor.make_utf8()
+        self.assertEqual(
+            True,
+            self.processor.check_utf8( settings_app.TEST_FROM_RAPID_UTF8_FILEPATH )
+            )
 
 ## end ##
