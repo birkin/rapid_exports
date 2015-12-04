@@ -15,6 +15,11 @@ from rapid_app import settings_app
 log = logging.getLogger(__name__)
 
 
+##################
+## view helpers ##
+##################
+
+
 class ProcessFileFromRapidHelper( object ):
     """ Manages view.process_file_from_rapid() work.
         Non-django class. """
@@ -24,8 +29,11 @@ class ProcessFileFromRapidHelper( object ):
             Called by views.process_file_from_rapid() """
         log.debug( 'starting processing' )
         grabber = self._setup_grabber()
+        processor = RapidFileProcessor(
+            settings_app.FROM_RAPID_FILEPATH, settings_app.FROM_RAPID_UTF8_FILEPATH )
         grabber.grab_file()
         grabber.unzip_file()
+        processor.parse_file_from_rapid()
         return
 
     def _setup_grabber( self ):
@@ -78,6 +86,11 @@ class TasksHelper( object ):
         return resp
 
     # end class TasksHelper
+
+
+#####################
+## regular classes ##
+#####################
 
 
 class RapidFileGrabber( object ):
