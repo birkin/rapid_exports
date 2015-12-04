@@ -107,7 +107,7 @@ class RapidFileGrabber( object ):
 
     def grab_file( self ):
         """ Grabs file.
-            Will be called via view. """
+            Called by ProcessFileFromRapidHelper.initiate_work(). """
         log.debug( 'starting grab_file()' )
         try:
             ftp = ftplib.FTP( self.remote_server_name )
@@ -122,7 +122,7 @@ class RapidFileGrabber( object ):
 
     def unzip_file( self ):
         """ Unzips file.
-            Will be called via view. """
+            Called by ProcessFileFromRapidHelper.initiate_work(). """
         log.debug( 'starting unzip' )
         zip_ref = zipfile.ZipFile( self.local_destination_filepath )
         zip_ref.extractall( self.local_destination_extract_directory )
@@ -168,11 +168,11 @@ class RapidFileProcessor( object ):
         with codecs.open( self.from_rapid_filepath, 'rb', 'utf-16' ) as input_file:
             with open( self.from_rapid_utf8_filepath, 'wb' ) as output_file:
                 for line in input_file:
-                    assert( type(line) == unicode )
                     try:
+                        # assert( type(line) == unicode )
                         output_file.write( line.encode('utf-8') )
                     except Exception as e:
                         log.error( 'exception, `%s`' % unicode(repr(e)) )
         return
 
-    # end class RapidProcessor
+    # end class RapidFileProcessor
