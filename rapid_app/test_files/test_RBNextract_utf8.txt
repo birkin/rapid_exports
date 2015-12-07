@@ -1,0 +1,100 @@
+RBN,Main Library,Wiley-Blackwell Science, Technology and Medicine Collection,https://login.revproxy.brown.edu/login?url=http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)1520-6327,Archives of insect biochemistry and physiology,Electronic,0739-4462,eISSN,,,1999
+
+RBN,Main Library,Wiley-Blackwell Science, Technology and Medicine Collection,https://login.revproxy.brown.edu/login?url=http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)1520-6327,Archives of insect biochemistry and physiology,Electronic,1520-6327,eISSN,,,1999
+
+RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie. Reviews of physiology, biochemistry, and experimental pharmacology,Print,0080-2042,ISSN,1,69,1937
+
+RBN,Main Library,ScienceDirect Biochemistry, Genetics & Molecular Biology Backfile,https://login.revproxy.brown.edu/login?url=http://www.sciencedirect.com/science/journal/00063061,Bioinorganic chemistry,Electronic,0006-3061,eISSN,,,1977
+
+RBN,Main Library,ScienceDirect Biochemistry, Genetics & Molecular Biology Backfile,https://login.revproxy.brown.edu/login?url=http://www.sciencedirect.com/science/journal/00063061,Bioinorganic chemistry,Electronic,1873-3190,eISSN,,,1977
+
+RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie. Reviews of physiology, biochemistry, and experimental pharmacology,Print,0080-2042,ISSN,1,69,1938
+
+RBN,Main Library,sci,TR1 .P58,Photographic abstracts,Print,0031-8701,ISSN,,,1962
+
+RBN,Main Library,sci,R11 .A6,The American journal of the medical sciences,Print,0002-9629,ISSN,1,312,1928
+
+RBN,Main Library,Wiley-Blackwell Science, Technology and Medicine Collection,https://login.revproxy.brown.edu/login?url=http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)1520-6327,Archives of insect biochemistry and physiology,Electronic,0739-4462,eISSN,,,2001
+
+RBN,Main Library,Wiley-Blackwell Science, Technology and Medicine Collection,https://login.revproxy.brown.edu/login?url=http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)1520-6327,Archives of insect biochemistry and physiology,Electronic,1520-6327,eISSN,,,2001
+
+RBN,Main Library,Wiley-Blackwell Science, Technology and Medicine Collection,https://login.revproxy.brown.edu/login?url=http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)1520-6327,Archives of insect biochemistry and physiology,Electronic,0739-4462,eISSN,,,2002
+
+RBN,Main Library,Wiley-Blackwell Science, Technology and Medicine Collection,https://login.revproxy.brown.edu/login?url=http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)1520-6327,Archives of insect biochemistry and physiology,Electronic,1520-6327,eISSN,,,2002
+
+RBN,Main Library,sci,R11 .A6,The American journal of the medical sciences,Print,0002-9629,ISSN,1,312,1926
+
+RBN,Main Library,sci,1-SIZE TN24.T2 A2,Information circular / State of Tennessee, Department of Conservation, Division of Geology,Print,0492-7079,ISSN,,,1971
+
+RBN,Main Library,ScienceDirect Biochemistry, Genetics & Molecular Biology Backfile,https://login.revproxy.brown.edu/login?url=http://www.sciencedirect.com/science/journal/00063061,Bioinorganic chemistry,Electronic,0006-3061,eISSN,,,1978
+
+RBN,Main Library,ScienceDirect Biochemistry, Genetics & Molecular Biology Backfile,https://login.revproxy.brown.edu/login?url=http://www.sciencedirect.com/science/journal/00063061,Bioinorganic chemistry,Electronic,1873-3190,eISSN,,,1978
+
+RBN,Main Library,Business Source Complete,https://login.revproxy.brown.edu/login?url=http://search.ebscohost.com/direct.asp?db=bth&jid=P7C&scope=site,tudes �conomiques de lOCDE : Italie,Electronic,1999-0359,eISSN,,,2011
+
+RBN,Main Library,Wiley-Blackwell Science, Technology and Medicine Collection,https://login.revproxy.brown.edu/login?url=http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)1520-6327,Archives of insect biochemistry and physiology,Electronic,0739-4462,eISSN,,,2000
+
+RBN,Main Library,Wiley-Blackwell Science, Technology and Medicine Collection,https://login.revproxy.brown.edu/login?url=http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)1520-6327,Archives of insect biochemistry and physiology,Electronic,1520-6327,eISSN,,,2000
+
+RBN,Main Library,JSTOR Arts & Sciences V,https://login.revproxy.brown.edu/login?url=http://www.jstor.org/action/showPublication?journalCode=bullfoggartmuse,Bulletin of the Fogg Art Museum,Electronic,1939-0394,eISSN,,,1941
+
+RBN,Main Library,JSTOR Arts & Sciences V,https://login.revproxy.brown.edu/login?url=http://www.jstor.org/action/showPublication?journalCode=bullfoggartmuse,Bulletin of the Fogg Art Museum,Electronic,2329-1109,eISSN,,,1941
+
+RBN,Main Library,ScienceDirect Journals,https://login.revproxy.brown.edu/login?url=http://www.sciencedirect.com/science/journal/15345807,Developmental cell,Electronic,1534-5807,eISSN,,,2004
+
+RBN,Main Library,ScienceDirect Journals,https://login.revproxy.brown.edu/login?url=http://www.sciencedirect.com/science/journal/15345807,Developmental cell,Electronic,1878-1551,eISSN,,,2004
+
+RBN,Main Library,ScienceDirect Journals,https://login.revproxy.brown.edu/login?url=http://www.sciencedirect.com/science/journal/08872171,Seminars in ultrasound, CT, and MRI,Electronic,0887-2171,eISSN,,,1999
+
+RBN,Main Library,ScienceDirect Journals,https://login.revproxy.brown.edu/login?url=http://www.sciencedirect.com/science/journal/08872171,Seminars in ultrasound, CT, and MRI,Electronic,1558-5034,eISSN,,,1999
+
+RBN,Main Library,JSTOR Arts & Sciences VIII,https://login.revproxy.brown.edu/login?url=http://www.jstor.org/action/showPublication?journalCode=amerlitereal1870,American literary realism, 1870-1910,Electronic,0002-9823,eISSN,,,1993
+
+RBN,Main Library,JSTOR Arts & Sciences VIII,https://login.revproxy.brown.edu/login?url=http://www.jstor.org/action/showPublication?journalCode=amerlitereal1870,American literary realism, 1870-1910,Electronic,2326-9235,eISSN,,,1993
+
+RBN,Main Library,JSTOR Arts & Sciences I,https://login.revproxy.brown.edu/login?url=http://www.jstor.org/action/showPublication?journalCode=janimalecology,Journal of animal ecology,Electronic,0021-8790,eISSN,,,1971
+
+RBN,Main Library,JSTOR Arts & Sciences I,https://login.revproxy.brown.edu/login?url=http://www.jstor.org/action/showPublication?journalCode=janimalecology,Journal of animal ecology,Electronic,1365-2656,eISSN,,,1971
+
+RBN,Main Library,rsmch,JX1 .C58,Journal of international affairs,Print,0022-197X,ISSN,31,56,1992
+
+RBN,Main Library,JSTOR Hebrew Journals,https://login.revproxy.brown.edu/login?url=http://www.jstor.org/action/showPublication?journalCode=sefunot,Sefunot: Studies and Sources on the History of the Jewish Communities in the East,Electronic,0582-3943,eISSN,,,1979
+
+RBN,Main Library,Gallica Periodicals,http://gallica.bnf.fr/ark:/12148/cb34348793z/date.r=.langEN,Journal de m�decine et de chirurgie pratiques,Electronic,0021-7913,eISSN,,,1843
+
+RBN,Main Library,Freely Accessible Social Science Journals,http://www.tidsskrift.dk/index.php/geografisktidsskrift,Geografisk tidsskrift,Electronic,0016-7223,eISSN,,,1914
+
+RBN,Main Library,Freely Accessible Social Science Journals,http://www.tidsskrift.dk/index.php/geografisktidsskrift,Geografisk tidsskrift,Electronic,1903-2471,eISSN,,,1914
+
+RBN,Main Library,Freely Accessible Social Science Journals,http://www.tidsskrift.dk/index.php/geografisktidsskrift,Geografisk tidsskrift,Electronic,0016-7223,eISSN,,,1916
+
+RBN,Main Library,Freely Accessible Social Science Journals,http://www.tidsskrift.dk/index.php/geografisktidsskrift,Geografisk tidsskrift,Electronic,1903-2471,eISSN,,,1916
+
+RBN,Main Library,Freely Accessible Social Science Journals,http://www.tidsskrift.dk/index.php/geografisktidsskrift,Geografisk tidsskrift,Electronic,0016-7223,eISSN,,,1918
+
+RBN,Main Library,Freely Accessible Social Science Journals,http://www.tidsskrift.dk/index.php/geografisktidsskrift,Geografisk tidsskrift,Electronic,1903-2471,eISSN,,,1918
+
+RBN,Main Library,Directory of Open Access Journals,http://riha.cujae.edu.cu/index.php/riha/issue/archive,Ingenieri?a hidra?ulica y ambiental,Electronic,1815-591X,eISSN,,,2004
+
+RBN,Main Library,ScienceDirect Journals,https://login.revproxy.brown.edu/login?url=http://www.sciencedirect.com/science/journal/16423593,Ecohydrology & Hydrobiology,Electronic,1642-3593,eISSN,,,2006
+
+RBN,Main Library,ScienceDirect Journals,https://login.revproxy.brown.edu/login?url=http://www.sciencedirect.com/science/journal/08872171,Seminars in ultrasound, CT, and MRI,Electronic,0887-2171,eISSN,,,2000
+
+RBN,Main Library,ScienceDirect Journals,https://login.revproxy.brown.edu/login?url=http://www.sciencedirect.com/science/journal/08872171,Seminars in ultrasound, CT, and MRI,Electronic,1558-5034,eISSN,,,2000
+
+RBN,Main Library,ScienceDirect Journals,https://login.revproxy.brown.edu/login?url=http://www.sciencedirect.com/science/journal/16423593,Ecohydrology & Hydrobiology,Electronic,1642-3593,eISSN,,,2007
+
+RBN,Main Library,Wiley-Blackwell Social Science and Humanities Collection,https://login.revproxy.brown.edu/login?url=http://onlinelibrary.wiley.com/journal/10.1111/(ISSN)1475-6765,European journal of political research,Electronic,0304-4130,eISSN,,,2012
+
+RBN,Main Library,Wiley-Blackwell Social Science and Humanities Collection,https://login.revproxy.brown.edu/login?url=http://onlinelibrary.wiley.com/journal/10.1111/(ISSN)1475-6765,European journal of political research,Electronic,1475-6765,eISSN,,,2012
+
+RBN,Main Library,Wiley-Blackwell Social Science and Humanities Collection,https://login.revproxy.brown.edu/login?url=http://onlinelibrary.wiley.com/journal/10.1111/(ISSN)1475-6765,European journal of political research,Electronic,0304-4130,eISSN,,,2013
+
+RBN,Main Library,Wiley-Blackwell Social Science and Humanities Collection,https://login.revproxy.brown.edu/login?url=http://onlinelibrary.wiley.com/journal/10.1111/(ISSN)1475-6765,European journal of political research,Electronic,1475-6765,eISSN,,,2013
+
+RBN,Main Library,rsmch,JX1 .C58,Journal of international affairs,Print,0022-197X,ISSN,31,56,1991
+
+RBN,Main Library,qs,1-SIZE GN1 .A55,American journal of physical anthropology,Print,0002-9483,ISSN,1,125,1919
+
+RBN,Main Library,ScienceDirect Journals,https://login.revproxy.brown.edu/login?url=http://www.sciencedirect.com/science/journal/15345807,Developmental cell,Electronic,1534-5807,eISSN,,,2002
+
