@@ -26,15 +26,15 @@ class RapidFileGrabberTest( TestCase ):
         """ Tests grab of remote file. """
         self.grabber.grab_file()
         self.assertEqual(
-            48662430,  # bytes
+            2277,  # bytes
             os.path.getsize(settings_app.TEST_LOCAL_DESTINATION_FILEPATH) )
 
     def test__unzip_file( self ):
         """ Tests unzip of downloaded file. """
-        self.grabber.local_destination_filepath = settings_app.TEST_ZIPFILE_FILEPATH
+        self.grabber.local_destination_filepath = settings_app.TEST_ZIPFILE_FILEPATH  # rapid_app/test_files/test_RBNextract.zip
         self.grabber.unzip_file()
         self.assertEqual(
-            718576792,  # bytes
+            20576,  # bytes
             os.path.getsize('%s/%s' % (settings_app.TEST_ZIPFILE_EXTRACT_DIR_PATH, settings_app.TEST_ZIPFILE_EXTRACT_FILENAME)) )
 
     def tearDown( self ):

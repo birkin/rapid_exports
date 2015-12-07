@@ -108,7 +108,7 @@ class RapidFileGrabber( object ):
     def grab_file( self ):
         """ Grabs file.
             Called by ProcessFileFromRapidHelper.initiate_work(). """
-        log.debug( 'starting grab_file()' )
+        log.debug( 'grab_file() remote_filepath, `%s`; local_destination_filepath, `%s`' % (self.remote_filepath, self.local_destination_filepath) )
         try:
             ftp = ftplib.FTP( self.remote_server_name )
             ftp.login( self.remote_server_username, self.remote_server_password )
@@ -123,7 +123,7 @@ class RapidFileGrabber( object ):
     def unzip_file( self ):
         """ Unzips file.
             Called by ProcessFileFromRapidHelper.initiate_work(). """
-        log.debug( 'starting unzip' )
+        log.debug( 'unzip_file() zipped-filepath, `%s`; unzipped-directory, `%s`' % (self.local_destination_filepath, self.local_destination_extract_directory) )
         zip_ref = zipfile.ZipFile( self.local_destination_filepath )
         zip_ref.extractall( self.local_destination_extract_directory )
         return
