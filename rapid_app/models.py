@@ -138,6 +138,19 @@ class RapidFileProcessor( object ):
     def __init__(self, from_rapid_filepath, from_rapid_utf8_filepath ):
         self.from_rapid_filepath = from_rapid_filepath  # actual initial file from rapid
         self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
+        self.defs_dct = {  # proper row field-definitions
+            'RBN?': 0 ,
+            'Library?': 1,
+            'location_code': 2,
+            'callnumber': 3,
+            'title': 4,
+            'print_or_online_type': 5,
+            'issn_num': 6,
+            'issn_label': 7,
+            'volume': 8,
+            'chapter': 9,
+            'year': 10
+            }
 
     def parse_file_from_rapid( self ):
         """ Extracts print holdings from the file-from-rapid.
@@ -145,6 +158,8 @@ class RapidFileProcessor( object ):
             Will be called via view. """
         if self.check_utf8() is False:
             self.make_utf8()
+        parsed_data_dct = self.extract_data()
+        return
 
     def check_utf8( self, filepath=None ):
         """ Ensures file is utf-8 readable.
@@ -174,5 +189,55 @@ class RapidFileProcessor( object ):
                     except Exception as e:
                         log.error( 'exception, `%s`' % unicode(repr(e)) )
         return
+
+    def extract_data( self ):
+        """ Iterates through file, extracting necessary data for easyAccess print-journal table.
+            Sample print entries:
+                `RBN,Main Library,sci,TR1 .P58,Photographic abstracts,Print,0031-8701,ISSN,,,1962`
+                `RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie...,Print,0080-2042,ISSN,1,69,1938`
+            Note: there are unescaped commas in some of the titles. Grrr.
+            Called by parse_file_from_rapid() """
+        data_dct = []
+        csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
+        log.debug( 'type(csv_ref), `%s`' % type(csv_ref) )
+        for row in csv_ref:  # row is type() `list`
+            log.debug( 'row, ```%s```' % pprint.pformat(row) )
+            if 'Print' not in row:
+                continue
+            if len( row ) > 11:
+                row = self._fix_row( row )
+        return data_dct
+
+    def _fix_row( self, row ):
+        """ Handles rows containing non-escaped commas in title.
+            Called by extract_data() """
+        fixed_row = []
+        fixed_row.append( row[self.defs_dct['RBN?']] )
+        fixed_row.append( row[self.defs_dct['Library?']] )
+        fixed_row.append( row[self.defs_dct['location_code']] )
+        fixed_row.append( row[self.defs_dct['callnumber']] )
+        fixed_row.append( row[self.defs_dct['title']] )
+        for field in row:
+            current_element_num = row.index( field )
+            if current_element_num > row[self.defs_dct['title']]:
+                if field[0:1] == ' ':  # additional title fields start with space
+                    fixed_row[self.defs_dct['title']] = fixed_row[self.defs_dct['title']] + field
+                if row[current_element_num + 1] == 'Print':
+                    problem_defs_dct = {
+                        'print_or_online_type': current_element_num + 1,
+                        'issn_num': current_element_num + 2,
+                        'issn_label': current_element_num + 3,
+                        'volume': current_element_num + 4,
+                        'chapter': current_element_num + 5,
+                        'year': current_element_num + 6
+                        }
+                    fixed_row.append( row[problem_defs_dct['print_or_online_type']] )
+                    fixed_row.append( row[problem_defs_dct['issn_num']] )
+                    fixed_row.append( row[problem_defs_dct['issn_label']] )
+                    fixed_row.append( row[problem_defs_dct['volume']] )
+                    fixed_row.append( row[problem_defs_dct['chapter']] )
+                    fixed_row.append( row[problem_defs_dct['year']] )
+                    break
+        return fixed_row
 
     # end class RapidFileProcessor

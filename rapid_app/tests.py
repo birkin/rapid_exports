@@ -70,4 +70,22 @@ class RapidFileProcessorTest( TestCase ):
             self.processor.check_utf8( settings_app.TEST_FROM_RAPID_UTF8_FILEPATH )
             )
 
+    def test__fix_row( self ):
+        """ Tests filtering and parsing of records for easyAccess db. """
+        bad_string = 'RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie. Reviews of physiology, biochemistry, and experimental pharmacology,Print,0080-2042,ISSN,1,69,1937'
+        bad_row = bad_string.split( ',' )
+        self.assertEqual(
+            2,
+            self.processor._fix_row( bad_row )
+            )
+
+    # def test__extract_data( self ):
+    #     """ Tests filtering and parsing of records for easyAccess db. """
+    #     self.assertEqual(
+    #         2,
+    #         self.processor.extract_data()
+    #         )
+
+
+
 ## end ##
