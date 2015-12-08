@@ -75,7 +75,7 @@ class RapidFileProcessorTest( TestCase ):
         bad_string = 'RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie. Reviews of physiology, biochemistry, and experimental pharmacology,Print,0080-2042,ISSN,1,69,1937'
         bad_row = bad_string.split( ',' )
         self.assertEqual(
-            2,
+            [u'RBN', u'Main Library', u'qs', u'QP1 .E7', u'Ergebnisse der Physiologie biologischen Chemie und experimentellen Pharmakologie. Reviews of physiology biochemistry and experimental pharmacology', u'Print', u'0080-2042', u'ISSN', u'1', u'69', u'1937'],
             self.processor._fix_row( bad_row )
             )
 

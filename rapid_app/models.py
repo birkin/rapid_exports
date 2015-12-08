@@ -211,18 +211,28 @@ class RapidFileProcessor( object ):
     def _fix_row( self, row ):
         """ Handles rows containing non-escaped commas in title.
             Called by extract_data() """
+        log.debug( 'starting _fix_row()' )
+        log.debug( 'row, ```%s```' % row )
         fixed_row = []
         fixed_row.append( row[self.defs_dct['RBN?']] )
         fixed_row.append( row[self.defs_dct['Library?']] )
         fixed_row.append( row[self.defs_dct['location_code']] )
         fixed_row.append( row[self.defs_dct['callnumber']] )
         fixed_row.append( row[self.defs_dct['title']] )
+        log.debug( 'fixed_row initially, ```%s```' % fixed_row )
         for field in row:
+            log.debug( 'field, ```%s```' % field )
             current_element_num = row.index( field )
-            if current_element_num > row[self.defs_dct['title']]:
+            log.debug( 'current_element_num, ```%s```' % current_element_num )
+            main_title_element_num = row.index( row[self.defs_dct['title']] )
+            log.debug( 'main_title_element_num, ```%s```' % main_title_element_num )
+            if current_element_num > main_title_element_num:
                 if field[0:1] == ' ':  # additional title fields start with space
+                    log.debug( 'space found' )
                     fixed_row[self.defs_dct['title']] = fixed_row[self.defs_dct['title']] + field
+                    log.debug( 'fixed_row updated, now, ```%s```' % fixed_row )
                 if row[current_element_num + 1] == 'Print':
+                    log.debug( 'Print found' )
                     problem_defs_dct = {
                         'print_or_online_type': current_element_num + 1,
                         'issn_num': current_element_num + 2,
@@ -238,6 +248,7 @@ class RapidFileProcessor( object ):
                     fixed_row.append( row[problem_defs_dct['chapter']] )
                     fixed_row.append( row[problem_defs_dct['year']] )
                     break
+        log.debug( 'fixed_row finally, ```%s```' % fixed_row )
         return fixed_row
 
     # end class RapidFileProcessor
