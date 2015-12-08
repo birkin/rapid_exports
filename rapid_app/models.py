@@ -151,6 +151,7 @@ class RapidFileProcessor( object ):
             'vol_end': 9,
             'year': 10
             }
+        self.row_fixer = RowFixer( self.defs_dct )
 
     def parse_file_from_rapid( self ):
         """ Extracts print holdings from the file-from-rapid.
@@ -196,30 +197,50 @@ class RapidFileProcessor( object ):
                 `RBN,Main Library,sci,TR1 .P58,Photographic abstracts,Print,0031-8701,ISSN,,,1962`
                 `RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie...,Print,0080-2042,ISSN,1,69,1938`
             Note: there are unescaped commas in some of the titles. Grrr.
+            Builds and returns a dict like {
+                u'00029629sciR11A6': {
+                    u'call_number': 'R11 .A6',
+                    u'issn': '0002-9629',
+                    u'location': 'sci',
+                    u'years': ['1926', '1928'] },  # years are sorted
+                u'abc123': {
+                    ... },
+                    }
             Called by parse_file_from_rapid() """
         holdings = {}
         csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
         for row in csv_ref:  # row is type() `list`
-            log.debug( 'row, ```%s```' % pprint.pformat(row) )
             if 'Print' not in row:
                 continue
-            if len( row ) > 11:
-                row_fixer = RowFixer( self.defs_dct )
-                row = row_fixer.fix_row( row )
-            callnumber = row[self.defs_dct['callnumber']]
-            issn = row[self.defs_dct['issn_num']]
-            location = row[self.defs_dct['location']]
-            year = row[self.defs_dct['year']]
-            normalized_issn = issn.replace( '-', '' )
-            normalized_callnumber = callnumber.replace( '-', '' ).replace( ' ', '' ).replace( '.', '' )
-            key = '%s%s%s' % ( normalized_issn, location, normalized_callnumber  )
-            if key not in holdings.keys():
-                holdings[key] = {
-                    'issn': issn, 'location': location, 'call_number': callnumber, 'years': [year] }
-            else:
-                if year and year not in holdings[key]['years']:
-                    holdings[key]['years'].append( year )
-                    holdings[key]['years'].sort()
+            if len( row ) > 11:  # titles with commas
+                row = self.row_fixer.fix_row( row )
+            ( key, issn, location, callnumber, year ) = self._build_holdings_elements( row )
+            holdings = self._update_holdings( holdings, key, issn, location, callnumber, year )
+        return holdings
+
+    def _build_holdings_elements( self, row ):
+        """ Extracts data from row-list.
+            Called by extract_print_holdings() """
+        log.debug( 'row, ```%s```' % pprint.pformat(row) )
+        callnumber = row[self.defs_dct['callnumber']]
+        issn = row[self.defs_dct['issn_num']]
+        location = row[self.defs_dct['location']]
+        year = row[self.defs_dct['year']]
+        normalized_issn = issn.replace( '-', '' )
+        normalized_callnumber = callnumber.replace( '-', '' ).replace( ' ', '' ).replace( '.', '' )
+        key = '%s%s%s' % ( normalized_issn, location, normalized_callnumber  )
+        return ( key, issn, location, callnumber, year )
+
+    def _update_holdings( self, holdings, key, issn, location, callnumber, year ):
+        """ Updates holdings dct.
+            Called by: extract_print_holdings() """
+        if key not in holdings.keys():
+            holdings[key] = {
+                'issn': issn, 'location': location, 'call_number': callnumber, 'years': [year] }
+        else:
+            if year and year not in holdings[key]['years']:
+                holdings[key]['years'].append( year )
+                holdings[key]['years'].sort()
         log.debug( 'holdings, ```%s```' % pprint.pformat(holdings) )
         return holdings
 
@@ -231,11 +252,11 @@ class RowFixer( object ):
         Non-django class. """
 
     def __init__(self, defs_dct ):
-        self.defs_dct = defs_dct
+        self.defs_dct = defs_dct  # { 'label 1': 'index position 1', ... }
 
     def fix_row( self, row ):
         """ Handles row containing non-escaped commas in title.
-            Called by RapidFileProcessor.extract_data() """
+            Called by RapidFileProcessor.extract_print_holdings() """
         fixed_row = self.initialize_fixed_row( row )
         for field in row:
             current_element_num = row.index(field)
