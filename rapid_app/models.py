@@ -139,16 +139,16 @@ class RapidFileProcessor( object ):
         self.from_rapid_filepath = from_rapid_filepath  # actual initial file from rapid
         self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
         self.defs_dct = {  # proper row field-definitions
-            'RBN?': 0 ,
-            'Library?': 1,
-            'location_code': 2,
+            'library': 0 ,
+            'branch': 1,
+            'location': 2,
             'callnumber': 3,
             'title': 4,
-            'print_or_online_type': 5,
+            'format': 5,
             'issn_num': 6,
-            'issn_label': 7,
-            'volume': 8,
-            'chapter': 9,
+            'issn_type': 7,
+            'vol_start': 8,
+            'vol_end': 9,
             'year': 10
             }
 
@@ -158,7 +158,7 @@ class RapidFileProcessor( object ):
             Will be called via view. """
         if self.check_utf8() is False:
             self.make_utf8()
-        parsed_data_dct = self.extract_data()
+        holdings = self.extract_print_holdings()
         return
 
     def check_utf8( self, filepath=None ):
@@ -190,24 +190,38 @@ class RapidFileProcessor( object ):
                         log.error( 'exception, `%s`' % unicode(repr(e)) )
         return
 
-    def extract_data( self ):
-        """ Iterates through file, extracting necessary data for easyAccess print-journal table.
+    def extract_print_holdings( self ):
+        """ Iterates through file, grabbing normalized print holdings.
             Sample print entries:
                 `RBN,Main Library,sci,TR1 .P58,Photographic abstracts,Print,0031-8701,ISSN,,,1962`
                 `RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie...,Print,0080-2042,ISSN,1,69,1938`
             Note: there are unescaped commas in some of the titles. Grrr.
             Called by parse_file_from_rapid() """
-        data_dct = []
+        holdings = {}
         csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
-        log.debug( 'type(csv_ref), `%s`' % type(csv_ref) )
         for row in csv_ref:  # row is type() `list`
             log.debug( 'row, ```%s```' % pprint.pformat(row) )
             if 'Print' not in row:
                 continue
             if len( row ) > 11:
-                row = self._fix_row( row )
-        return data_dct
-
+                row_fixer = RowFixer( self.defs_dct )
+                row = row_fixer.fix_row( row )
+            callnumber = row[self.defs_dct['callnumber']]
+            issn = row[self.defs_dct['issn_num']]
+            location = row[self.defs_dct['location']]
+            year = row[self.defs_dct['year']]
+            normalized_issn = issn.replace( '-', '' )
+            normalized_callnumber = callnumber.replace( '-', '' ).replace( ' ', '' ).replace( '.', '' )
+            key = '%s%s%s' % ( normalized_issn, location, normalized_callnumber  )
+            if key not in holdings.keys():
+                holdings[key] = {
+                    'issn': issn, 'location': location, 'call_number': callnumber, 'years': [year] }
+            else:
+                if year and year not in holdings[key]['years']:
+                    holdings[key]['years'].append( year )
+                    holdings[key]['years'].sort()
+        log.debug( 'holdings, ```%s```' % pprint.pformat(holdings) )
+        return holdings
 
     # end class RapidFileProcessor
 
@@ -216,20 +230,8 @@ class RowFixer( object ):
     """ Fixes non-escaped csv strings.
         Non-django class. """
 
-    def __init__(self ):
-        self.defs_dct = {  # proper row field-definitions
-            'RBN?': 0 ,
-            'Library?': 1,
-            'location_code': 2,
-            'callnumber': 3,
-            'title': 4,
-            'print_or_online_type': 5,
-            'issn_num': 6,
-            'issn_label': 7,
-            'volume': 8,
-            'chapter': 9,
-            'year': 10
-            }
+    def __init__(self, defs_dct ):
+        self.defs_dct = defs_dct
 
     def fix_row( self, row ):
         """ Handles row containing non-escaped commas in title.
@@ -249,9 +251,9 @@ class RowFixer( object ):
         """ Initializes fixed row with known correct row data.
             Called by fix_row() """
         fixed_row = []
-        fixed_row.append( row[self.defs_dct['RBN?']] )
-        fixed_row.append( row[self.defs_dct['Library?']] )
-        fixed_row.append( row[self.defs_dct['location_code']] )
+        fixed_row.append( row[self.defs_dct['library']] )
+        fixed_row.append( row[self.defs_dct['branch']] )
+        fixed_row.append( row[self.defs_dct['location']] )
         fixed_row.append( row[self.defs_dct['callnumber']] )
         fixed_row.append( row[self.defs_dct['title']] )
         log.debug( 'fixed_row initially, ```%s```' % fixed_row )
@@ -271,11 +273,11 @@ class RowFixer( object ):
         """ Creates remaining definition-dct elements, given known current_element_num.
             Called by fix_row() """
         problem_defs_dct = {
-            'print_or_online_type': current_element_num + 1,
+            'format': current_element_num + 1,
             'issn_num': current_element_num + 2,
-            'issn_label': current_element_num + 3,
-            'volume': current_element_num + 4,
-            'chapter': current_element_num + 5,
+            'issn_type': current_element_num + 3,
+            'vol_start': current_element_num + 4,
+            'vol_end': current_element_num + 5,
             'year': current_element_num + 6
             }
         log.debug( 'problem_defs_dct, ```%s```' % problem_defs_dct )
@@ -285,11 +287,11 @@ class RowFixer( object ):
         """ Updates remaining fixed-row elements.
             Called by fix_row() """
         fixed_row[self.defs_dct['title']] = fixed_row[self.defs_dct['title']][0:-1]  # slice off that last comma
-        fixed_row.append( row[problem_defs_dct['print_or_online_type']] )
+        fixed_row.append( row[problem_defs_dct['format']] )
         fixed_row.append( row[problem_defs_dct['issn_num']] )
-        fixed_row.append( row[problem_defs_dct['issn_label']] )
-        fixed_row.append( row[problem_defs_dct['volume']] )
-        fixed_row.append( row[problem_defs_dct['chapter']] )
+        fixed_row.append( row[problem_defs_dct['issn_type']] )
+        fixed_row.append( row[problem_defs_dct['vol_start']] )
+        fixed_row.append( row[problem_defs_dct['vol_end']] )
         fixed_row.append( row[problem_defs_dct['year']] )
         log.debug( 'fixed_row finished, ```%s```' % fixed_row )
         return fixed_row
