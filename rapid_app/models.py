@@ -208,11 +208,46 @@ class RapidFileProcessor( object ):
                 row = self._fix_row( row )
         return data_dct
 
-    def _fix_row( self, row ):
-        """ Handles rows containing non-escaped commas in title.
-            Called by extract_data() """
-        log.debug( 'starting _fix_row()' )
-        log.debug( 'row, ```%s```' % row )
+
+    # end class RapidFileProcessor
+
+
+class RowFixer( object ):
+    """ Fixes non-escaped csv strings.
+        Non-django class. """
+
+    def __init__(self ):
+        self.defs_dct = {  # proper row field-definitions
+            'RBN?': 0 ,
+            'Library?': 1,
+            'location_code': 2,
+            'callnumber': 3,
+            'title': 4,
+            'print_or_online_type': 5,
+            'issn_num': 6,
+            'issn_label': 7,
+            'volume': 8,
+            'chapter': 9,
+            'year': 10
+            }
+
+    def fix_row( self, row ):
+        """ Handles row containing non-escaped commas in title.
+            Called by RapidFileProcessor.extract_data() """
+        fixed_row = self.initialize_fixed_row( row )
+        for field in row:
+            current_element_num = row.index(field)
+            fixed_row = self.update_title( fixed_row, row, current_element_num, field )
+            if row[current_element_num + 1] == 'Print':
+                problem_defs_dct = self.make_problem_defs_dct( current_element_num )
+                fixed_row = self.finish_fixed_row( fixed_row, row, problem_defs_dct )
+                break
+        log.debug( 'fixed_row finally, ```%s```' % fixed_row )
+        return fixed_row
+
+    def initialize_fixed_row( self, row ):
+        """ Initializes fixed row with known correct row data.
+            Called by fix_row() """
         fixed_row = []
         fixed_row.append( row[self.defs_dct['RBN?']] )
         fixed_row.append( row[self.defs_dct['Library?']] )
@@ -220,35 +255,43 @@ class RapidFileProcessor( object ):
         fixed_row.append( row[self.defs_dct['callnumber']] )
         fixed_row.append( row[self.defs_dct['title']] )
         log.debug( 'fixed_row initially, ```%s```' % fixed_row )
-        for field in row:
-            log.debug( 'field, ```%s```' % field )
-            current_element_num = row.index( field )
-            log.debug( 'current_element_num, ```%s```' % current_element_num )
-            main_title_element_num = row.index( row[self.defs_dct['title']] )
-            log.debug( 'main_title_element_num, ```%s```' % main_title_element_num )
-            if current_element_num > main_title_element_num:
-                if field[0:1] == ' ':  # additional title fields start with space
-                    log.debug( 'space found' )
-                    fixed_row[self.defs_dct['title']] = fixed_row[self.defs_dct['title']] + field
-                    log.debug( 'fixed_row updated, now, ```%s```' % fixed_row )
-                if row[current_element_num + 1] == 'Print':
-                    log.debug( 'Print found' )
-                    problem_defs_dct = {
-                        'print_or_online_type': current_element_num + 1,
-                        'issn_num': current_element_num + 2,
-                        'issn_label': current_element_num + 3,
-                        'volume': current_element_num + 4,
-                        'chapter': current_element_num + 5,
-                        'year': current_element_num + 6
-                        }
-                    fixed_row.append( row[problem_defs_dct['print_or_online_type']] )
-                    fixed_row.append( row[problem_defs_dct['issn_num']] )
-                    fixed_row.append( row[problem_defs_dct['issn_label']] )
-                    fixed_row.append( row[problem_defs_dct['volume']] )
-                    fixed_row.append( row[problem_defs_dct['chapter']] )
-                    fixed_row.append( row[problem_defs_dct['year']] )
-                    break
-        log.debug( 'fixed_row finally, ```%s```' % fixed_row )
         return fixed_row
 
-    # end class RapidFileProcessor
+    def update_title( self, fixed_row, row, current_element_num, field ):
+        """ Processes additional title fields.
+            Called by fix_row() """
+        main_title_element_num = row.index( row[self.defs_dct['title']] )
+        if current_element_num > main_title_element_num:
+            if field[0:1] == ' ':  # additional title fields start with space
+                fixed_row[self.defs_dct['title']] = fixed_row[self.defs_dct['title']] + field + ','
+        log.debug( 'fixed_row title updated, ```%s```' % fixed_row )
+        return fixed_row
+
+    def make_problem_defs_dct( self, current_element_num ):
+        """ Creates remaining definition-dct elements, given known current_element_num.
+            Called by fix_row() """
+        problem_defs_dct = {
+            'print_or_online_type': current_element_num + 1,
+            'issn_num': current_element_num + 2,
+            'issn_label': current_element_num + 3,
+            'volume': current_element_num + 4,
+            'chapter': current_element_num + 5,
+            'year': current_element_num + 6
+            }
+        log.debug( 'problem_defs_dct, ```%s```' % problem_defs_dct )
+        return problem_defs_dct
+
+    def finish_fixed_row( self, fixed_row, row, problem_defs_dct ):
+        """ Updates remaining fixed-row elements.
+            Called by fix_row() """
+        fixed_row[self.defs_dct['title']] = fixed_row[self.defs_dct['title']][0:-1]  # slice off that last comma
+        fixed_row.append( row[problem_defs_dct['print_or_online_type']] )
+        fixed_row.append( row[problem_defs_dct['issn_num']] )
+        fixed_row.append( row[problem_defs_dct['issn_label']] )
+        fixed_row.append( row[problem_defs_dct['volume']] )
+        fixed_row.append( row[problem_defs_dct['chapter']] )
+        fixed_row.append( row[problem_defs_dct['year']] )
+        log.debug( 'fixed_row finished, ```%s```' % fixed_row )
+        return fixed_row
+
+    # end class RowFixer

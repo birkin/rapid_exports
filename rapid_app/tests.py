@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import os
 from django.test import TestCase
 from rapid_app import settings_app
-from rapid_app.models import RapidFileGrabber, RapidFileProcessor
+from rapid_app.models import RapidFileGrabber, RapidFileProcessor, RowFixer
 
 
 class RapidFileGrabberTest( TestCase ):
@@ -49,7 +49,7 @@ class RapidFileProcessorTest( TestCase ):
     """ Tests models.RapidFileProcessor """
 
     def setUp( self ):
-        """ Runs initialization; ensures test-file doesn't exist locally. """
+        """ Runs initialization. """
         self.processor = RapidFileProcessor(
             settings_app.TEST_FROM_RAPID_FILEPATH,
             settings_app.TEST_FROM_RAPID_UTF8_FILEPATH,
@@ -70,14 +70,6 @@ class RapidFileProcessorTest( TestCase ):
             self.processor.check_utf8( settings_app.TEST_FROM_RAPID_UTF8_FILEPATH )
             )
 
-    def test__fix_row( self ):
-        """ Tests filtering and parsing of records for easyAccess db. """
-        bad_string = 'RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie. Reviews of physiology, biochemistry, and experimental pharmacology,Print,0080-2042,ISSN,1,69,1937'
-        bad_row = bad_string.split( ',' )
-        self.assertEqual(
-            [u'RBN', u'Main Library', u'qs', u'QP1 .E7', u'Ergebnisse der Physiologie biologischen Chemie und experimentellen Pharmakologie. Reviews of physiology biochemistry and experimental pharmacology', u'Print', u'0080-2042', u'ISSN', u'1', u'69', u'1937'],
-            self.processor._fix_row( bad_row )
-            )
 
     # def test__extract_data( self ):
     #     """ Tests filtering and parsing of records for easyAccess db. """
@@ -86,6 +78,22 @@ class RapidFileProcessorTest( TestCase ):
     #         self.processor.extract_data()
     #         )
 
+
+class RowFixerTest( TestCase ):
+    """ Tests models.RowFixer """
+
+    def setUp( self ):
+        """ Runs initialization. """
+        self.fixer = RowFixer()
+
+    def test__fix_row( self ):
+        """ Tests filtering and parsing of records for easyAccess db. """
+        bad_string = 'RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie. Reviews of physiology, biochemistry, and experimental pharmacology,Print,0080-2042,ISSN,1,69,1937'
+        bad_row = bad_string.split( ',' )
+        self.assertEqual(
+            [u'RBN', u'Main Library', u'qs', u'QP1 .E7', u'Ergebnisse der Physiologie biologischen Chemie und experimentellen Pharmakologie. Reviews of physiology, biochemistry, and experimental pharmacology', u'Print', u'0080-2042', u'ISSN', u'1', u'69', u'1937'],
+            self.fixer.fix_row( bad_row )
+            )
 
 
 ## end ##
