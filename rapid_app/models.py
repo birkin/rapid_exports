@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-import codecs, csv, datetime, ftplib, itertools, json, logging, os, pprint, shutil, time, zipfile
+import codecs, csv, datetime, ftplib, itertools, json, logging, operator, os, pprint, shutil, time, zipfile
 from django.conf import settings as project_settings
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -159,7 +159,8 @@ class RapidFileProcessor( object ):
             Will be called via view. """
         if self.check_utf8() is False:
             self.make_utf8()
-        holdings = self.extract_print_holdings()
+        holdings_dct = self.extract_print_holdings()
+        holdings_lst = self.build_holdings_list( holdings_dct )
         return
 
     def check_utf8( self, filepath=None ):
@@ -243,6 +244,28 @@ class RapidFileProcessor( object ):
                 holdings[key]['years'].sort()
         log.debug( 'holdings, ```%s```' % pprint.pformat(holdings) )
         return holdings
+
+    def build_holdings_list( self, holdings_dct ):
+        """ Converts the holdings_dct into a list of entries ready for db update.
+            Main work is taking the multiple year entries and making ranges.
+            Called by parse_file_from_rapid() """
+        for ( key, val ) in holdings_dct.items():
+            year_list = val['years']
+            log.debug( 'year_list, `%s`' % year_list )
+            contig_year_list = self._contigify_list( year_list )
+            log.debug( 'contig_year_list, `%s`' % contig_year_list )
+        return 'foo'
+
+    def _contigify_list( self, lst ):
+        """ Converts sorted list entries into sub-lists that are contiguous.
+            Eg: [ 1, 2, 4, 5 ] -> [ [1, 2], [4, 5] ]
+            Credit: <http://stackoverflow.com/questions/3149440/python-splitting-list-based-on-missing-numbers-in-a-sequence>
+            Called by build_holdings_list() """
+        contig_lst = []
+        for k, g in itertools.groupby( enumerate(lst), lambda (i,x):i-x ):
+            contig_lst.append( map(operator.itemgetter(1), g) )
+        log.debug( 'contig_lst, `%s`' % contig_lst )
+        return contig_lst
 
     # end class RapidFileProcessor
 
