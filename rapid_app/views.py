@@ -23,10 +23,10 @@ def tasks( request ):
 
 def process_file_from_rapid( request ):
     """ Shows tasks window. """
-    process_file_from_rapid_hlper.initiate_work( request )
-    response = process_file_from_rapid_hlper.make_response( request )
+    data = process_file_from_rapid_hlper.initiate_work( request )
+    response = process_file_from_rapid_hlper.make_response( request, data )
+    log.debug( 'response, ```%s```' % response )
     return response
-
 
 def hi( request ):
     """ Returns simplest response. """

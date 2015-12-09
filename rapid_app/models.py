@@ -33,8 +33,8 @@ class ProcessFileFromRapidHelper( object ):
             settings_app.FROM_RAPID_FILEPATH, settings_app.FROM_RAPID_UTF8_FILEPATH )
         grabber.grab_file()
         grabber.unzip_file()
-        processor.parse_file_from_rapid()
-        return
+        data_lst = processor.parse_file_from_rapid()
+        return data_lst
 
     def _setup_grabber( self ):
         """ Initializes grabber.
@@ -49,10 +49,14 @@ class ProcessFileFromRapidHelper( object ):
             )
         return grabber
 
-    def make_response( self, request ):
+    def make_response( self, request, data ):
         """ Prepares response.
             Called by views.process_file_from_rapid() """
-        resp = HttpResponseRedirect( reverse('tasks_url') )
+        if request.GET.get( 'format' ) == 'json':
+            output = json.dumps( data, sort_keys=True, indent=2 )
+            resp = HttpResponse( output, content_type=u'application/javascript; charset=utf-8' )
+        else:
+            resp = HttpResponseRedirect( reverse('tasks_url') )
         return resp
 
     # end class ProcessFileFromRapidHelper
@@ -160,7 +164,7 @@ class RapidFileProcessor( object ):
         if self.check_utf8() is False:
             self.make_utf8()
         holdings_dct = self.build_holdings_dct()
-        holdings_lst = self.build_holdings_list( holdings_dct )
+        holdings_lst = self.build_holdings_lst( holdings_dct )
         return holdings_lst
 
     def check_utf8( self, filepath=None ):
