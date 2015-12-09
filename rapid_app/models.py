@@ -159,9 +159,9 @@ class RapidFileProcessor( object ):
             Will be called via view. """
         if self.check_utf8() is False:
             self.make_utf8()
-        holdings_dct = self.extract_print_holdings()
+        holdings_dct = self.build_holdings_dct()
         holdings_lst = self.build_holdings_list( holdings_dct )
-        return
+        return holdings_lst
 
     def check_utf8( self, filepath=None ):
         """ Ensures file is utf-8 readable.
@@ -192,7 +192,7 @@ class RapidFileProcessor( object ):
                         log.error( 'exception, `%s`' % unicode(repr(e)) )
         return
 
-    def extract_print_holdings( self ):
+    def build_holdings_dct( self ):
         """ Iterates through file, grabbing normalized print holdings.
             Sample print entries:
                 `RBN,Main Library,sci,TR1 .P58,Photographic abstracts,Print,0031-8701,ISSN,,,1962`
@@ -208,7 +208,7 @@ class RapidFileProcessor( object ):
                     ... },
                     }
             Called by parse_file_from_rapid() """
-        holdings = {}
+        holdings_dct = {}
         csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
         for row in csv_ref:  # row is type() `list`
             if 'Print' not in row:
@@ -216,13 +216,13 @@ class RapidFileProcessor( object ):
             if len( row ) > 11:  # titles with commas
                 row = self.row_fixer.fix_row( row )
             ( key, issn, location, callnumber, year ) = self._build_holdings_elements( row )
-            holdings = self._update_holdings( holdings, key, issn, location, callnumber, year )
-        log.debug( 'holdings-dct, ```%s```' % pprint.pformat(holdings) )
-        return holdings
+            holdings_dct = self._update_holdings_dct( holdings_dct, key, issn, location, callnumber, year )
+        log.debug( 'holdings_dct, ```%s```' % pprint.pformat(holdings_dct) )
+        return holdings_dct
 
     def _build_holdings_elements( self, row ):
         """ Extracts data from row-list.
-            Called by extract_print_holdings() """
+            Called by build_holdings_dct() """
         log.debug( 'row, ```%s```' % pprint.pformat(row) )
         callnumber = row[self.defs_dct['callnumber']]
         issn = row[self.defs_dct['issn_num']]
@@ -233,9 +233,9 @@ class RapidFileProcessor( object ):
         key = '%s%s%s' % ( normalized_issn, location, normalized_callnumber  )
         return ( key, issn, location, callnumber, year )
 
-    def _update_holdings( self, holdings, key, issn, location, callnumber, year ):
+    def _update_holdings_dct( self, holdings, key, issn, location, callnumber, year ):
         """ Updates holdings dct.
-            Called by: extract_print_holdings() """
+            Called by: build_holdings_dct() """
         if key not in holdings.keys():
             holdings[key] = {
                 'issn': issn, 'location': location, 'call_number': callnumber, 'years': [year] }
@@ -256,25 +256,10 @@ class RapidFileProcessor( object ):
             log.debug( 'year_lst, `%s`' % year_lst )
             holdings_dct[key]['years_contig'] = self._contigify_list( year_lst )
             holdings_dct[key]['years_held'] = self._build_years_held( holdings_dct[key]['years_contig'] )
-            holdings_lst = self.update_holdings_lst( holdings_lst, val )
+            holdings_lst = self._update_holdings_lst( holdings_lst, val )
         sorted_lst = sorted( holdings_lst )
         log.debug( 'holdings_lst, ```%s```' % pprint.pformat(sorted_lst) )
         return sorted_lst
-
-    def update_holdings_lst( self, holdings_lst, issn_dct ):
-        """ Builds final data lst entry.
-            Called by parse_file_from_rapid() """
-        issn = issn_dct['issn']
-        location = issn_dct['location']
-        callnumber = issn_dct['call_number']
-        for period_dct in issn_dct['years_held']:
-            new_key = '%s%s' % ( issn.replace('-', ''), period_dct['start'] )
-            update_lst = [ new_key, issn, location, callnumber, period_dct['start'], period_dct['end'] ]
-            log.debug( 'update_lst, `%s`' % update_lst )
-            if update_lst not in holdings_lst:
-                log.debug( 'gonna update' )
-                holdings_lst.append( update_lst )
-        return holdings_lst
 
     def _contigify_list( self, lst ):
         """ Converts sorted list entries into sub-lists that are contiguous.
@@ -306,6 +291,21 @@ class RapidFileProcessor( object ):
         log.debug( 'years_held_lst, `%s`' % years_held_lst )
         return years_held_lst
 
+    def _update_holdings_lst( self, holdings_lst, issn_dct ):
+        """ Builds final data lst entry.
+            Called by parse_file_from_rapid() """
+        issn = issn_dct['issn']
+        location = issn_dct['location']
+        callnumber = issn_dct['call_number']
+        for period_dct in issn_dct['years_held']:
+            new_key = '%s%s' % ( issn.replace('-', ''), period_dct['start'] )
+            update_lst = [ new_key, issn, location, callnumber, period_dct['start'], period_dct['end'] ]
+            log.debug( 'update_lst, `%s`' % update_lst )
+            if update_lst not in holdings_lst:
+                log.debug( 'gonna update' )
+                holdings_lst.append( update_lst )
+        return holdings_lst
+
     # end class RapidFileProcessor
 
 
@@ -318,7 +318,7 @@ class RowFixer( object ):
 
     def fix_row( self, row ):
         """ Handles row containing non-escaped commas in title.
-            Called by RapidFileProcessor.extract_print_holdings() """
+            Called by RapidFileProcessor.build_holdings_dct() """
         fixed_row = self.initialize_fixed_row( row )
         for field in row:
             current_element_num = row.index(field)

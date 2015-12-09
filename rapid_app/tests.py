@@ -70,7 +70,7 @@ class RapidFileProcessorTest( TestCase ):
             self.processor.check_utf8( settings_app.TEST_FROM_RAPID_UTF8_FILEPATH )
             )
 
-    def test__extract_print_holdings( self ):
+    def test__build_holdings_dct( self ):
         """ Tests filtering and parsing of records for easyAccess db. """
         self.assertEqual(
             {u'00029483qs1SIZEGN1A55': {
@@ -103,7 +103,7 @@ class RapidFileProcessorTest( TestCase ):
                 u'issn': '0492-7079',
                 u'location': 'sci',
                 u'years': ['1971']}},
-            self.processor.extract_print_holdings()
+            self.processor.build_holdings_dct()
             )
 
     def test__contigify_list( self ):
