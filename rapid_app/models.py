@@ -217,6 +217,7 @@ class RapidFileProcessor( object ):
                 row = self.row_fixer.fix_row( row )
             ( key, issn, location, callnumber, year ) = self._build_holdings_elements( row )
             holdings = self._update_holdings( holdings, key, issn, location, callnumber, year )
+        log.debug( 'holdings-dct, ```%s```' % pprint.pformat(holdings) )
         return holdings
 
     def _build_holdings_elements( self, row ):
@@ -245,27 +246,65 @@ class RapidFileProcessor( object ):
         log.debug( 'holdings, ```%s```' % pprint.pformat(holdings) )
         return holdings
 
-    def build_holdings_list( self, holdings_dct ):
+    def build_holdings_lst( self, holdings_dct ):
         """ Converts the holdings_dct into a list of entries ready for db update.
             Main work is taking the multiple year entries and making ranges.
             Called by parse_file_from_rapid() """
+        holdings_lst = []
         for ( key, val ) in holdings_dct.items():
-            year_list = val['years']
-            log.debug( 'year_list, `%s`' % year_list )
-            contig_year_list = self._contigify_list( year_list )
-            log.debug( 'contig_year_list, `%s`' % contig_year_list )
-        return 'foo'
+            year_lst = val['years']
+            log.debug( 'year_lst, `%s`' % year_lst )
+            holdings_dct[key]['years_contig'] = self._contigify_list( year_lst )
+            holdings_dct[key]['years_held'] = self._build_years_held( holdings_dct[key]['years_contig'] )
+            holdings_lst = self.update_holdings_lst( holdings_lst, val )
+        sorted_lst = sorted( holdings_lst )
+        log.debug( 'holdings_lst, ```%s```' % pprint.pformat(sorted_lst) )
+        return sorted_lst
+
+    def update_holdings_lst( self, holdings_lst, issn_dct ):
+        """ Builds final data lst entry.
+            Called by parse_file_from_rapid() """
+        issn = issn_dct['issn']
+        location = issn_dct['location']
+        callnumber = issn_dct['call_number']
+        for period_dct in issn_dct['years_held']:
+            new_key = '%s%s' % ( issn.replace('-', ''), period_dct['start'] )
+            update_lst = [ new_key, issn, location, callnumber, period_dct['start'], period_dct['end'] ]
+            log.debug( 'update_lst, `%s`' % update_lst )
+            if update_lst not in holdings_lst:
+                log.debug( 'gonna update' )
+                holdings_lst.append( update_lst )
+        return holdings_lst
 
     def _contigify_list( self, lst ):
         """ Converts sorted list entries into sub-lists that are contiguous.
             Eg: [ 1, 2, 4, 5 ] -> [ [1, 2], [4, 5] ]
             Credit: <http://stackoverflow.com/questions/3149440/python-splitting-list-based-on-missing-numbers-in-a-sequence>
             Called by build_holdings_list() """
+        # int_lst = []
+        # for year in lst:
+        #     int_lst.append( int(year) )
+        int_lst = [ int(x) for x in lst ]
         contig_lst = []
-        for k, g in itertools.groupby( enumerate(lst), lambda (i,x):i-x ):
+        for k, g in itertools.groupby( enumerate(int_lst), lambda (i,x):i-x ):
             contig_lst.append( map(operator.itemgetter(1), g) )
         log.debug( 'contig_lst, `%s`' % contig_lst )
         return contig_lst
+
+    def _build_years_held( self, contig_lst ):
+        """ Converts contig_list to list of [ {'start': year-a, 'end': 'year-b'}, {'start': year-c, 'end': 'year-d'} ] entries.
+            Called by build_holdings_list() """
+        years_held_lst = []
+        for lst in contig_lst:
+            for year in lst:
+                start = lst[0]
+                end = lst[-1]
+                # end = lst[-1] if lst[-1] is not start else ( lst[-1] + 1 )
+                start_end_dct = {'start': start, 'end':end}
+                if start_end_dct not in years_held_lst:
+                    years_held_lst.append( start_end_dct )
+        log.debug( 'years_held_lst, `%s`' % years_held_lst )
+        return years_held_lst
 
     # end class RapidFileProcessor
 

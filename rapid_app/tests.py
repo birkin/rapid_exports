@@ -108,47 +108,72 @@ class RapidFileProcessorTest( TestCase ):
 
     def test__contigify_list( self ):
         """ Tests updating list of single elements to list of lists-of-contiguous elements. """
-        start_lst = [ 1, 2, 4, 5 ]
+        start_lst = [ 1, 2, 4, 5, 7 ]
         self.assertEqual(
-            [ [1, 2], [4, 5] ],
+            [ [1, 2], [4, 5], [7] ],
+            self.processor._contigify_list( start_lst )
+            )
+        start_lst = [ '1', '2', '4', '5', '7' ]
+        self.assertEqual(
+            [ [1, 2], [4, 5], [7] ],
             self.processor._contigify_list( start_lst )
             )
 
-    # def test__build_holdings_list( self ):
-    #     """ Tests conversion of holdings_dct to holdings_lst. """
-    #     holdings_dct = {
-    #          u'00029483qs1SIZEGN1A55': {
-    #             u'call_number': '1-SIZE GN1 .A55',
-    #             u'issn': '0002-9483',
-    #             u'location': 'qs',
-    #             u'years': ['1919']},
-    #          u'00029629sciR11A6': {
-    #             u'call_number': 'R11 .A6',
-    #             u'issn': '0002-9629',
-    #             u'location': 'sci',
-    #             u'years': ['1926', '1928']},
-    #          u'0022197XrsmchJX1C58': {
-    #             u'call_number': 'JX1 .C58',
-    #             u'issn': '0022-197X',
-    #             u'location': 'rsmch',
-    #             u'years': ['1991', '1992']},
-    #          u'00318701sciTR1P58': {
-    #             u'call_number': 'TR1 .P58',
-    #             u'issn': '0031-8701',
-    #             u'location': 'sci',
-    #             u'years': ['1962']},
-    #          u'00802042qsQP1E7': {
-    #             u'call_number': 'QP1 .E7',
-    #             u'issn': '0080-2042',
-    #             u'location': 'qs',
-    #             u'years': ['1937', '1938']},
-    #          u'04927079sci1SIZETN24T2A2': {
-    #             u'call_number': '1-SIZE TN24.T2 A2',
-    #             u'issn': '0492-7079',
-    #             u'location': 'sci',
-    #             u'years': ['1971']}
-    #         }
-    #     self.assertEqual( 2, self.processor.build_holdings_list(holdings_dct) )
+    def test__build_years_held( self ):
+        """ Tests converting contig list to list of start-end dcts. """
+        contig_list = [ [1, 2], [4, 5], [7] ]
+        self.assertEqual(
+            [
+                {u'start': 1, u'end': 2},
+                {u'start': 4, u'end': 5},
+                {u'start': 7, u'end': 7}],
+            self.processor._build_years_held( contig_list )
+            )
+
+    def test__build_holdings_lst( self ):
+        """ Tests conversion of holdings_dct to holdings_lst. """
+        holdings_dct = {
+             u'00029483qs1SIZEGN1A55': {
+                u'call_number': '1-SIZE GN1 .A55',
+                u'issn': '0002-9483',
+                u'location': 'qs',
+                u'years': ['1919']},
+             u'00029629sciR11A6': {
+                u'call_number': 'R11 .A6',
+                u'issn': '0002-9629',
+                u'location': 'sci',
+                u'years': ['1926', '1928']},
+             u'0022197XrsmchJX1C58': {
+                u'call_number': 'JX1 .C58',
+                u'issn': '0022-197X',
+                u'location': 'rsmch',
+                u'years': ['1991', '1992']},
+             u'00318701sciTR1P58': {
+                u'call_number': 'TR1 .P58',
+                u'issn': '0031-8701',
+                u'location': 'sci',
+                u'years': ['1962']},
+             u'00802042qsQP1E7': {
+                u'call_number': 'QP1 .E7',
+                u'issn': '0080-2042',
+                u'location': 'qs',
+                u'years': ['1937', '1938']},
+             u'04927079sci1SIZETN24T2A2': {
+                u'call_number': '1-SIZE TN24.T2 A2',
+                u'issn': '0492-7079',
+                u'location': 'sci',
+                u'years': ['1971']}
+            }
+        self.assertEqual(
+            [[u'000294831919', u'0002-9483', u'qs', u'1-SIZE GN1 .A55', 1919, 1919],
+             [u'000296291926', u'0002-9629', u'sci', u'R11 .A6', 1926, 1926],
+             [u'000296291928', u'0002-9629', u'sci', u'R11 .A6', 1928, 1928],
+             [u'0022197X1991', u'0022-197X', u'rsmch', u'JX1 .C58', 1991, 1992],
+             [u'003187011962', u'0031-8701', u'sci', u'TR1 .P58', 1962, 1962],
+             [u'008020421937', u'0080-2042', u'qs', u'QP1 .E7', 1937, 1938],
+             [u'049270791971', u'0492-7079', u'sci', u'1-SIZE TN24.T2 A2', 1971, 1971]],
+            self.processor.build_holdings_lst( holdings_dct )
+            )
 
     # end class RapidFileProcessorTest
 
