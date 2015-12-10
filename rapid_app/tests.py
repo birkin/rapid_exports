@@ -108,9 +108,9 @@ class RapidFileProcessorTest( TestCase ):
 
     def test__contigify_list( self ):
         """ Tests updating list of single elements to list of lists-of-contiguous elements. """
-        start_lst = [ 1, 2, 4, 5, 7 ]
+        start_lst = [ 1, 2, 3, 5, 6, 8 ]
         self.assertEqual(
-            [ [1, 2], [4, 5], [7] ],
+            [ [1, 2, 3], [5, 6], [8] ],
             self.processor._contigify_list( start_lst )
             )
         start_lst = [ '1', '2', '4', '5', '7' ]
@@ -121,12 +121,12 @@ class RapidFileProcessorTest( TestCase ):
 
     def test__build_years_held( self ):
         """ Tests converting contig list to list of start-end dcts. """
-        contig_list = [ [1, 2], [4, 5], [7] ]
+        contig_list = [ [1, 2, 3], [5, 6], [8] ]
         self.assertEqual(
             [
-                {u'start': 1, u'end': 2},
-                {u'start': 4, u'end': 5},
-                {u'start': 7, u'end': 7}],
+                {u'start': 1, u'end': 3},
+                {u'start': 5, u'end': 6},
+                {u'start': 8, u'end': 8}],
             self.processor._build_years_held( contig_list )
             )
 
