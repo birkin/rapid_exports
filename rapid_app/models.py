@@ -20,20 +20,21 @@ log = logging.getLogger(__name__)
 ######################
 
 
-# class PrintTitleDev( models.Model ):
-#     """ Shows the db as it _will_ be populated. """
-#     key = models.CharField( max_length=20, primary_key=True )
-#     issn = models.CharField( max_length=15 )
-#     start = models.IntegerField()
-#     end = models.IntegerField( blank=True, null=True )
-#     location = models.CharField( max_length=25, blank=True, null=True )
-#     call_number = models.CharField( max_length=50, blank=True, null=True )
-#     date_updated = models.DateField( auto_now=True )
+class PrintTitleDev( models.Model ):
+    """ Shows the dev db as it _will_ be populated.
+        Not populated by django orm code -- just here for admin viewing convenience. """
+    key = models.CharField( max_length=20, primary_key=True )
+    issn = models.CharField( max_length=15 )
+    start = models.IntegerField()
+    end = models.IntegerField( blank=True, null=True )
+    location = models.CharField( max_length=25, blank=True, null=True )
+    call_number = models.CharField( max_length=50, blank=True, null=True )
+    date_updated = models.DateField( auto_now=True )
 
-#     def __unicode__(self):
-#         return '%s__%s_to_%s' % ( self.issn, self.start, self.end )
+    def __unicode__(self):
+        return '%s__%s_to_%s' % ( self.issn, self.start, self.end )
 
-#     # end class PrintTitleDev
+    # end class PrintTitleDev
 
 
 ##################
@@ -181,11 +182,12 @@ class RapidFileProcessor( object ):
     def parse_file_from_rapid( self ):
         """ Extracts print holdings from the file-from-rapid.
             That file contains both print and online holdings.
-            Will be called via view. """
+            Called by ProcessFileFromRapidHelper.initiate_work() """
         if self.check_utf8() is False:
             self.make_utf8()
         holdings_dct = self.build_holdings_dct()
         holdings_lst = self.build_holdings_lst( holdings_dct )
+        self.update_dev_db( holdings_lst )
         return holdings_lst
 
     def check_utf8( self, filepath=None ):
@@ -238,6 +240,8 @@ class RapidFileProcessor( object ):
         for row in csv_ref:  # row is type() `list`
             if 'Print' not in row:
                 continue
+            # int_lst = [ int(x) for x in lst ]
+            row = [ field.decode('utf-8') for field in row ]
             if len( row ) > 11:  # titles with commas
                 row = self.row_fixer.fix_row( row )
             ( key, issn, location, callnumber, year ) = self._build_holdings_elements( row )
@@ -248,7 +252,7 @@ class RapidFileProcessor( object ):
     def _build_holdings_elements( self, row ):
         """ Extracts data from row-list.
             Called by build_holdings_dct() """
-        log.debug( 'row, ```%s```' % pprint.pformat(row) )
+        # log.debug( 'row, ```%s```' % pprint.pformat(row) )
         callnumber = row[self.defs_dct['callnumber']]
         issn = row[self.defs_dct['issn_num']]
         location = row[self.defs_dct['location']]
@@ -268,7 +272,7 @@ class RapidFileProcessor( object ):
             if year and year not in holdings[key]['years']:
                 holdings[key]['years'].append( year )
                 holdings[key]['years'].sort()
-        log.debug( 'holdings, ```%s```' % pprint.pformat(holdings) )
+        # log.debug( 'holdings, ```%s```' % pprint.pformat(holdings) )
         return holdings
 
     def build_holdings_lst( self, holdings_dct ):
@@ -331,6 +335,12 @@ class RapidFileProcessor( object ):
                 holdings_lst.append( update_lst )
         return holdings_lst
 
+    def update_dev_db( self, holdings_lst ):
+        """ Populates a db table that can be viewed before replacing the production db table.
+            Called by parse_file_from_rapid() """
+        for row in holdings_lst:
+            pass
+
     # end class RapidFileProcessor
 
 
@@ -364,8 +374,33 @@ class RowFixer( object ):
         fixed_row.append( row[self.defs_dct['location']] )
         fixed_row.append( row[self.defs_dct['callnumber']] )
         fixed_row.append( row[self.defs_dct['title']] )
-        log.debug( 'fixed_row initially, ```%s```' % fixed_row )
+        # log.debug( 'fixed_row initially, ```%s```' % fixed_row )
         return fixed_row
+
+    # def update_title( self, fixed_row, row, current_element_num, field ):
+    #     """ Processes additional title fields.
+    #         Called by fix_row() """
+    #     log.debug( 'type(fixed_row), `%s`' % type(fixed_row) )
+    #     log.debug( 'type(row), `%s`' % type(row) )
+    #     log.debug( 'type(current_element_num), `%s`' % type(current_element_num) )
+    #     log.debug( 'type(field), `%s`' % type(field) )
+    #     try:
+    #         log.debug( 'a' )
+    #         main_title_element_num = row.index( row[self.defs_dct['title']] )
+    #         log.debug( 'b' )
+    #         if current_element_num > main_title_element_num:
+    #             log.debug( 'c' )
+    #             if field[0:1] == ' ':  # additional title fields start with space
+    #                 log.debug( 'd' )
+    #                 fixed_row[self.defs_dct['title']] = fixed_row[self.defs_dct['title']] + field + ','
+    #                 log.debug( 'e' )
+    #         log.debug( 'f' )
+    #         log.debug( 'fixed_row title updated, ```%s```' % fixed_row )
+    #         log.debug( 'g' )
+    #         return fixed_row
+    #     except Exception as e:
+    #         log.error( 'error, `%s`' % unicode(repr(e)) )
+    #         raise Exception( 'error, `%s`' % unicode(repr(e)) )
 
     def update_title( self, fixed_row, row, current_element_num, field ):
         """ Processes additional title fields.
@@ -374,7 +409,7 @@ class RowFixer( object ):
         if current_element_num > main_title_element_num:
             if field[0:1] == ' ':  # additional title fields start with space
                 fixed_row[self.defs_dct['title']] = fixed_row[self.defs_dct['title']] + field + ','
-        log.debug( 'fixed_row title updated, ```%s```' % fixed_row )
+        # log.debug( 'fixed_row title updated, ```%s```' % fixed_row )
         return fixed_row
 
     def make_problem_defs_dct( self, current_element_num ):
@@ -401,7 +436,7 @@ class RowFixer( object ):
         fixed_row.append( row[problem_defs_dct['vol_start']] )
         fixed_row.append( row[problem_defs_dct['vol_end']] )
         fixed_row.append( row[problem_defs_dct['year']] )
-        log.debug( 'fixed_row finished, ```%s```' % fixed_row )
+        # log.debug( 'fixed_row finished, ```%s```' % fixed_row )
         return fixed_row
 
     # end class RowFixer
