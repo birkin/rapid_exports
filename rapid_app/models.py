@@ -377,31 +377,6 @@ class RowFixer( object ):
         # log.debug( 'fixed_row initially, ```%s```' % fixed_row )
         return fixed_row
 
-    # def update_title( self, fixed_row, row, current_element_num, field ):
-    #     """ Processes additional title fields.
-    #         Called by fix_row() """
-    #     log.debug( 'type(fixed_row), `%s`' % type(fixed_row) )
-    #     log.debug( 'type(row), `%s`' % type(row) )
-    #     log.debug( 'type(current_element_num), `%s`' % type(current_element_num) )
-    #     log.debug( 'type(field), `%s`' % type(field) )
-    #     try:
-    #         log.debug( 'a' )
-    #         main_title_element_num = row.index( row[self.defs_dct['title']] )
-    #         log.debug( 'b' )
-    #         if current_element_num > main_title_element_num:
-    #             log.debug( 'c' )
-    #             if field[0:1] == ' ':  # additional title fields start with space
-    #                 log.debug( 'd' )
-    #                 fixed_row[self.defs_dct['title']] = fixed_row[self.defs_dct['title']] + field + ','
-    #                 log.debug( 'e' )
-    #         log.debug( 'f' )
-    #         log.debug( 'fixed_row title updated, ```%s```' % fixed_row )
-    #         log.debug( 'g' )
-    #         return fixed_row
-    #     except Exception as e:
-    #         log.error( 'error, `%s`' % unicode(repr(e)) )
-    #         raise Exception( 'error, `%s`' % unicode(repr(e)) )
-
     def update_title( self, fixed_row, row, current_element_num, field ):
         """ Processes additional title fields.
             Called by fix_row() """
@@ -440,3 +415,29 @@ class RowFixer( object ):
         return fixed_row
 
     # end class RowFixer
+
+
+class ManualDbHandler( object ):
+    """ Writes to db-table not controlled by django.
+        Used to update production print-titles table, and, for consistency, the django dev print-titles table.
+        Non-django class. """
+
+    def __init__(self ):
+        self.temp = "foo"
+
+    def run_sql( self, sql ):
+        """ Executes sql; returns list of key-value data on select.
+            Called by TBD """
+        dct_tuple = None
+        try:
+            self._setup_db_connection()
+            self.cursor_object.execute( sql )
+            dct_tuple = self.cursor_object.fetchall()  # tuple of row-dicts
+        except Exception as e:
+            log.error( 'error: %s' % unicode(repr(e)) )
+            raise Exception( unicode(repr(e)) )
+        finally:
+            self._close_db_connection()
+        return dct_tuple
+
+    # end class ManualDbHandler

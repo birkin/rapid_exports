@@ -21,6 +21,16 @@ ZIPFILE_EXTRACT_FILENAME = unicode( os.environ['RAPID__ZIPFILE_EXTRACT_FILENAME'
 FROM_RAPID_FILEPATH = '%s/%s' % ( ZIPFILE_EXTRACT_DIR_PATH, ZIPFILE_EXTRACT_FILENAME )
 FROM_RAPID_UTF8_FILEPATH = unicode( os.environ['RAPID__FROM_RAPID_UTF8_FILEPATH'] )
 
+## update dev deb ##
+DEV_DB_NAME = unicode( os.environ['RAPID__DEV_DB_NAME'] )
+DEV_DB_TABLE = unicode( os.environ['RAPID__DEV_DB_TABLE'] )
+DEV_DB_USER = unicode( os.environ['RAPID__DEV_DB_USER'] )
+DEV_DB_PASSWORD = unicode( os.environ['RAPID__DEV_DB_PASSWORD'] )
+DEV_DB_CREATE_SQL_PATTERN = unicode( os.environ['RAPID__DEV_DB_CREATE_SQL_PATTERN'] )
+DEV_DB_READ_SQL_PATTERN = unicode( os.environ['RAPID__DEV_DB_READ_SQL_PATTERN'] )
+DEV_DB_UPDATE_SQL_PATTERN = unicode( os.environ['RAPID__DEV_DB_UPDATE_SQL_PATTERN'] )
+DEV_DB_DELETE_SQL_PATTERN = unicode( os.environ['RAPID__DEV_DB_DELETE_SQL_PATTERN'] )
+
 
 ## tests ##
 ###########
