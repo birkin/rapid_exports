@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 import codecs, csv, datetime, ftplib, itertools, json, logging, operator, os, pprint, shutil, time, zipfile
+import MySQLdb  # really pymysql; see config/__init__.py
 from django.conf import settings as project_settings
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -418,26 +419,51 @@ class RowFixer( object ):
 
 
 class ManualDbHandler( object ):
-    """ Writes to db-table not controlled by django.
+    """ Reads/Writes to db-table not controlled by django.
         Used to update production print-titles table, and, for consistency, the django dev print-titles table.
         Non-django class. """
 
-    def __init__(self ):
-        self.temp = "foo"
+    def __init__( self, dev_or_prod ):
+        if dev_or_prod == 'dev':
+            self.DB_HOST = ""
+            self.DB_PORT = ""
+            self.DB_USER = settings_app.DEV_DB_USER
+            self.DB_PASSWORD = settings_app.DEV_DB_PASSWORD
+            self.DB_NAME = settings_app.DEV_DB_NAME
+        else:
+            self.DB_HOST = ""
+            self.DB_PORT = ""
+            self.DB_USERNAME = ""
+            self.DB_PASSWORD = ""
+            self.DB_NAME = ""
+        self.connection_object = None
+        self.cursor_object = None
 
     def run_sql( self, sql ):
-        """ Executes sql; returns list of key-value data on select.
+        """ Executes sql; returns list of key-value data on SELECT.
             Called by TBD """
         dct_tuple = None
         try:
             self._setup_db_connection()
             self.cursor_object.execute( sql )
-            dct_tuple = self.cursor_object.fetchall()  # tuple of row-dicts
+            dct_tuple = self.cursor_object.fetchall()  # tuple of row-dicts on SELECT
         except Exception as e:
             log.error( 'error: %s' % unicode(repr(e)) )
             raise Exception( unicode(repr(e)) )
         finally:
             self._close_db_connection()
         return dct_tuple
+
+    def _setup_db_connection( self ):
+        """ Sets up connection; populates instance attributes.
+            Called by run_select() """
+        try:
+            self.connection_object = MySQLdb.connect(
+                host=self.DB_HOST, port=self.DB_PORT, user=self.DB_USER, passwd=self.DB_PASSWORD, db=self.DB_NAME )
+            self.cursor_object = self.connection_object.cursor( MySQLdb.cursors.DictCursor )
+            return
+        except Exception as e:
+            self.logger.error( 'error: %s' % unicode(repr(e)) )
+            raise Exception( unicode(repr(e)) )
 
     # end class ManualDbHandler
