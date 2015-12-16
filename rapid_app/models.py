@@ -296,9 +296,6 @@ class RapidFileProcessor( object ):
             Eg: [ 1, 2, 4, 5 ] -> [ [1, 2], [4, 5] ]
             Credit: <http://stackoverflow.com/questions/3149440/python-splitting-list-based-on-missing-numbers-in-a-sequence>
             Called by build_holdings_list() """
-        # int_lst = []
-        # for year in lst:
-        #     int_lst.append( int(year) )
         int_lst = [ int(x) for x in lst ]
         contig_lst = []
         for k, g in itertools.groupby( enumerate(int_lst), lambda (i,x):i-x ):
@@ -424,18 +421,16 @@ class ManualDbHandler( object ):
         Non-django class. """
 
     def __init__( self, dev_or_prod ):
+        self.DB_PORT = settings_app.DB_PORT
+        self.DB_NAME = settings_app.DB_NAME
         if dev_or_prod == 'dev':
-            self.DB_HOST = ""
-            self.DB_PORT = ""
+            self.DB_HOST = settings_app.DEV_DB_HOST
             self.DB_USER = settings_app.DEV_DB_USER
             self.DB_PASSWORD = settings_app.DEV_DB_PASSWORD
-            self.DB_NAME = settings_app.DEV_DB_NAME
         else:
-            self.DB_HOST = ""
-            self.DB_PORT = ""
-            self.DB_USERNAME = ""
-            self.DB_PASSWORD = ""
-            self.DB_NAME = ""
+            self.DB_HOST = settings_app.PROD_DB_HOST
+            self.DB_USER = settings_app.PROD_DB_USER
+            self.DB_PASSWORD = settings_app.PROD_DB_PASSWORD
         self.connection_object = None
         self.cursor_object = None
 
