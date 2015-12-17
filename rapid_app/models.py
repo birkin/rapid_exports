@@ -336,9 +336,16 @@ class RapidFileProcessor( object ):
         return holdings_lst
 
     def update_dev_db( self, holdings_lst ):
+        """ Adds and removes dev-db title entries.
+            Called by parse_file_from_rapid() """
+        self._run_dev_db_adds( holdings_lst )
+        self._run_dev_db_deletes( holdings_lst )
+        return
+
+    def _run_dev_db_adds( self, holdings_lst ):
         """ Populates a db table that can be viewed before replacing the production db table.
             Assumes an index on unique `key` field.
-            Called by parse_file_from_rapid() """
+            Called by update_dev_db() """
         for row in holdings_lst:
             title = PrintTitleDev()
             title.key = row[self.holdings_defs_dct['key']]
@@ -349,6 +356,20 @@ class RapidFileProcessor( object ):
             title.call_number = row[self.holdings_defs_dct['callnumber']]
             title.updated = unicode( datetime.date.today() )
             title.save()
+        return
+
+    def _run_dev_db_deletes( self, holdings_lst ):
+        """ Removes outdated dev-db title entries.
+            Called by update_dev_db() """
+        key_list = []
+        for row in holdings_lst:
+            holdings_key = row[self.holdings_defs_dct['key']]
+            if holdings_key not in key_list:
+                key_list.append( holdings_key )
+        titles = PrintTitleDev.objects.all()
+        for title in titles:
+            if title.key not in key_list:
+                title.delete()
         return
 
     # end class RapidFileProcessor
