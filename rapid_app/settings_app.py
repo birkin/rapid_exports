@@ -36,8 +36,6 @@ PROD_DB_PASSWORD = unicode( os.environ['RAPID__PROD_DB_PASSWORD'] )
 ## either db ##
 DB_NAME = unicode( os.environ['RAPID__DB_NAME'] )
 DB_TABLE = unicode( os.environ['RAPID__DB_TABLE'] )
-DB_CONDITIONAL_INSERT_SQL_PATTERN = unicode( os.environ['RAPID__DB_CONDITIONAL_INSERT_SQL_PATTERN'] )
-DB_CONDITIONAL_DELETE_SQL_PATTERN = unicode( os.environ['RAPID__DB_CONDITIONAL_DELETE_SQL_PATTERN'] )
 
 ###########
 ## TESTS ##

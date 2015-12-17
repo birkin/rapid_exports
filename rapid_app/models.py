@@ -166,7 +166,7 @@ class RapidFileProcessor( object ):
         self.from_rapid_filepath = from_rapid_filepath  # actual initial file from rapid
         self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
         self.defs_dct = {  # proper row field-definitions
-            'library': 0 ,
+            'library': 0,
             'branch': 1,
             'location': 2,
             'callnumber': 3,
@@ -179,6 +179,8 @@ class RapidFileProcessor( object ):
             'year': 10
             }
         self.row_fixer = RowFixer( self.defs_dct )
+        self.holdings_defs_dct = {
+            'key': 0, 'issn': 1, 'location': 2, 'callnumber': 3, 'year_start': 4, 'year_end': 5 }
 
     def parse_file_from_rapid( self ):
         """ Extracts print holdings from the file-from-rapid.
@@ -335,9 +337,22 @@ class RapidFileProcessor( object ):
 
     def update_dev_db( self, holdings_lst ):
         """ Populates a db table that can be viewed before replacing the production db table.
+            Assumes an index on unique `key` field.
             Called by parse_file_from_rapid() """
         for row in holdings_lst:
-            pass
+            insert_sql = "INSERT IGNORE INTO `{DB_NAME}`.`{DB_TABLE}` (`key`, `issn`, `start`, `end`, `location`, `call_number`, `date_updated`) VALUES ('{KEY_VAL}', '{ISSN_VAL}', '{START_VAL}', '{END_VAL}', '{LOCATION_VAL}', '{CALLNUMBER_VAL}', '{DATE_UPDATED_VAL}')".format(
+                DB_NAME = settings_app.DB_NAME,
+                DB_TABLE = settings_app.DB_TABLE,
+                KEY_VAL = row[self.holdings_defs_dct['key']],
+                ISSN_VAL = row[self.holdings_defs_dct['issn']],
+                START_VAL = row[self.holdings_defs_dct['year_start']],
+                END_VAL = row[self.holdings_defs_dct['year_end']],
+                LOCATION_VAL = row[self.holdings_defs_dct['location']],
+                CALLNUMBER_VAL = row[self.holdings_defs_dct['callnumber']],
+                DATE_UPDATED_VAL = unicode( datetime.date.today() ),
+                )
+            log.debug( 'insert_sql, `%s`' % insert_sql )
+        return
 
     # end class RapidFileProcessor
 
