@@ -340,18 +340,15 @@ class RapidFileProcessor( object ):
             Assumes an index on unique `key` field.
             Called by parse_file_from_rapid() """
         for row in holdings_lst:
-            insert_sql = "INSERT IGNORE INTO `{DB_NAME}`.`{DB_TABLE}` (`key`, `issn`, `start`, `end`, `location`, `call_number`, `date_updated`) VALUES ('{KEY_VAL}', '{ISSN_VAL}', '{START_VAL}', '{END_VAL}', '{LOCATION_VAL}', '{CALLNUMBER_VAL}', '{DATE_UPDATED_VAL}')".format(
-                DB_NAME = settings_app.DB_NAME,
-                DB_TABLE = settings_app.DB_TABLE,
-                KEY_VAL = row[self.holdings_defs_dct['key']],
-                ISSN_VAL = row[self.holdings_defs_dct['issn']],
-                START_VAL = row[self.holdings_defs_dct['year_start']],
-                END_VAL = row[self.holdings_defs_dct['year_end']],
-                LOCATION_VAL = row[self.holdings_defs_dct['location']],
-                CALLNUMBER_VAL = row[self.holdings_defs_dct['callnumber']],
-                DATE_UPDATED_VAL = unicode( datetime.date.today() ),
-                )
-            log.debug( 'insert_sql, `%s`' % insert_sql )
+            title = PrintTitleDev()
+            title.key = row[self.holdings_defs_dct['key']]
+            title.issn = row[self.holdings_defs_dct['issn']]
+            title.start = row[self.holdings_defs_dct['year_start']]
+            title.end = row[self.holdings_defs_dct['year_end']]
+            title.location = row[self.holdings_defs_dct['location']]
+            title.call_number = row[self.holdings_defs_dct['callnumber']]
+            title.updated = unicode( datetime.date.today() )
+            title.save()
         return
 
     # end class RapidFileProcessor
@@ -432,7 +429,7 @@ class RowFixer( object ):
 
 class ManualDbHandler( object ):
     """ Reads/Writes to db-table not controlled by django.
-        Used to update production print-titles table, and, for consistency, the django dev print-titles table.
+        Used to update production print-titles table.
         Non-django class. """
 
     def __init__( self, dev_or_prod ):

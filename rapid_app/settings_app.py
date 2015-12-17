@@ -23,19 +23,12 @@ FROM_RAPID_UTF8_FILEPATH = unicode( os.environ['RAPID__FROM_RAPID_UTF8_FILEPATH'
 
 ## DB MANUAL ACCESS ##
 
-## dev db ##
-DEV_DB_HOST = unicode( os.environ['RAPID__DEV_DB_HOST'] )
-DEV_DB_USER = unicode( os.environ['RAPID__DEV_DB_USER'] )
-DEV_DB_PASSWORD = unicode( os.environ['RAPID__DEV_DB_PASSWORD'] )
-
 ## prod db ##
 PROD_DB_HOST = unicode( os.environ['RAPID__PROD_DB_HOST'] )
 PROD_DB_USER = unicode( os.environ['RAPID__PROD_DB_USER'] )
 PROD_DB_PASSWORD = unicode( os.environ['RAPID__PROD_DB_PASSWORD'] )
-
-## either db ##
-DB_NAME = unicode( os.environ['RAPID__DB_NAME'] )
-DB_TABLE = unicode( os.environ['RAPID__DB_TABLE'] )
+PROD_DB_NAME = unicode( os.environ['RAPID__PROD_DB_NAME'] )
+PROD_DB_TABLE = unicode( os.environ['RAPID__PROD_DB_TABLE'] )
 
 ###########
 ## TESTS ##
