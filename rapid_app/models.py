@@ -301,12 +301,26 @@ class RapidFileProcessor( object ):
             Eg: [ 1, 2, 4, 5 ] -> [ [1, 2], [4, 5] ]
             Credit: <http://stackoverflow.com/questions/3149440/python-splitting-list-based-on-missing-numbers-in-a-sequence>
             Called by build_holdings_list() """
-        int_lst = [ int(x) for x in lst ]
         contig_lst = []
+        if lst == ['']:
+            return contig_list
+        int_lst = [ int(x) for x in lst ]
         for k, g in itertools.groupby( enumerate(int_lst), lambda (i,x):i-x ):
             contig_lst.append( map(operator.itemgetter(1), g) )
         log.debug( 'contig_lst, `%s`' % contig_lst )
         return contig_lst
+
+    # def _contigify_list( self, lst ):
+    #     """ Converts sorted list entries into sub-lists that are contiguous.
+    #         Eg: [ 1, 2, 4, 5 ] -> [ [1, 2], [4, 5] ]
+    #         Credit: <http://stackoverflow.com/questions/3149440/python-splitting-list-based-on-missing-numbers-in-a-sequence>
+    #         Called by build_holdings_list() """
+    #     int_lst = [ int(x) for x in lst ]
+    #     contig_lst = []
+    #     for k, g in itertools.groupby( enumerate(int_lst), lambda (i,x):i-x ):
+    #         contig_lst.append( map(operator.itemgetter(1), g) )
+    #     log.debug( 'contig_lst, `%s`' % contig_lst )
+    #     return contig_lst
 
     def _build_years_held( self, contig_lst ):
         """ Converts contig_list to list of [ {'start': year-a, 'end': 'year-b'}, {'start': year-c, 'end': 'year-d'} ] entries.
@@ -325,7 +339,7 @@ class RapidFileProcessor( object ):
 
     def _update_holdings_lst( self, holdings_lst, issn_dct ):
         """ Builds final data lst entry.
-            Called by parse_file_from_rapid() """
+            Called by build_holdings_lst() """
         issn = issn_dct['issn']
         location = issn_dct['location']
         callnumber = issn_dct['call_number']
