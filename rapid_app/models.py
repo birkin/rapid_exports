@@ -168,20 +168,6 @@ class RapidFileProcessor( object ):
     def __init__(self, from_rapid_filepath, from_rapid_utf8_filepath ):
         self.from_rapid_filepath = from_rapid_filepath  # actual initial file from rapid
         self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
-        # self.defs_dct = {  # proper row field-definitions
-        #     'library': 0,
-        #     'branch': 1,
-        #     'location': 2,
-        #     'callnumber': 3,
-        #     'title': 4,
-        #     'format': 5,
-        #     'issn_num': 6,
-        #     'issn_type': 7,
-        #     'vol_start': 8,
-        #     'vol_end': 9,
-        #     'year': 10
-        #     }
-        # self.row_fixer = RowFixer( self.defs_dct )
         self.holdings_defs_dct = {
             'key': 0, 'issn': 1, 'location': 2, 'callnumber': 3, 'year_start': 4, 'year_end': 5 }
 
@@ -389,9 +375,9 @@ class HoldingsDctBuilder( object ):
     def track_row( self, row_idx, entries_count ):
         """ For now, logs progress, can update status-db in future.
             Called by build_holdings_dct() """
-        prcnt = int( entries_count * .1 )  # ten percent
-        if row_idx % prcnt == 0:  # uses modulo
-            prcnt_done = row_idx / prcnt
+        tn_prcnt = int( entries_count * .1 )  # ten percent
+        if row_idx % tn_prcnt == 0:  # uses modulo
+            prcnt_done = row_idx / (tn_prcnt/10)
             log.debug( '%s percent done (on row %s of %s)' % (prcnt_done, row_idx+1, entries_count) )  # +1 for 0 index
         return
 
@@ -403,35 +389,6 @@ class HoldingsDctBuilder( object ):
             row = self.row_fixer.fix_row( row )
         ( key, issn, location, callnumber, year ) = self._build_holdings_elements( row )
         return ( key, issn, location, callnumber, year )
-
-    # def build_holdings_dct( self ):
-    #     """ Iterates through file, grabbing normalized print holdings.
-    #         Sample print entries:
-    #             `RBN,Main Library,sci,TR1 .P58,Photographic abstracts,Print,0031-8701,ISSN,,,1962`
-    #             `RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie...,Print,0080-2042,ISSN,1,69,1938`
-    #         Note: there are unescaped commas in some of the titles. Grrr.
-    #         Builds and returns a dict like {
-    #             u'00029629sciR11A6': {
-    #                 u'call_number': 'R11 .A6',
-    #                 u'issn': '0002-9629',
-    #                 u'location': 'sci',
-    #                 u'years': ['1926', '1928'] },  # years are sorted
-    #             u'abc123': {
-    #                 ... },
-    #                 }
-    #         Called by parse_file_from_rapid() """
-    #     holdings_dct = {}
-    #     csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
-    #     for row in csv_ref:  # row is type() `list`
-    #         if 'Print' not in row:
-    #             continue
-    #         row = [ field.decode('utf-8') for field in row ]
-    #         if len( row ) > 11:  # titles with commas
-    #             row = self.row_fixer.fix_row( row )
-    #         ( key, issn, location, callnumber, year ) = self._build_holdings_elements( row )
-    #         holdings_dct = self._update_holdings_dct( holdings_dct, key, issn, location, callnumber, year )
-    #     log.debug( 'holdings_dct, ```%s```' % pprint.pformat(holdings_dct) )
-    #     return holdings_dct
 
     def _build_holdings_elements( self, row ):
         """ Extracts data from row-list.

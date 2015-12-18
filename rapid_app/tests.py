@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import os
 from django.test import TestCase
 from rapid_app import settings_app
-from rapid_app.models import RapidFileGrabber, RapidFileProcessor, RowFixer
+from rapid_app.models import HoldingsDctBuilder, RapidFileGrabber, RapidFileProcessor, RowFixer
 
 
 class RapidFileGrabberTest( TestCase ):
@@ -68,42 +68,6 @@ class RapidFileProcessorTest( TestCase ):
         self.assertEqual(
             True,
             self.processor.check_utf8( settings_app.TEST_FROM_RAPID_UTF8_FILEPATH )
-            )
-
-    def test__build_holdings_dct( self ):
-        """ Tests filtering and parsing of records for easyAccess db. """
-        self.assertEqual(
-            {u'00029483qs1SIZEGN1A55': {
-                u'call_number': '1-SIZE GN1 .A55',
-                u'issn': '0002-9483',
-                u'location': 'qs',
-                u'years': ['1919']},
-             u'00029629sciR11A6': {
-                u'call_number': 'R11 .A6',
-                u'issn': '0002-9629',
-                u'location': 'sci',
-                u'years': ['1926', '1928']},
-             u'0022197XrsmchJX1C58': {
-                u'call_number': 'JX1 .C58',
-                u'issn': '0022-197X',
-                u'location': 'rsmch',
-                u'years': ['1991', '1992']},
-             u'00318701sciTR1P58': {
-                u'call_number': 'TR1 .P58',
-                u'issn': '0031-8701',
-                u'location': 'sci',
-                u'years': ['1962']},
-             u'00802042qsQP1E7': {
-                u'call_number': 'QP1 .E7',
-                u'issn': '0080-2042',
-                u'location': 'qs',
-                u'years': ['1937', '1938']},
-             u'04927079sci1SIZETN24T2A2': {
-                u'call_number': '1-SIZE TN24.T2 A2',
-                u'issn': '0492-7079',
-                u'location': 'sci',
-                u'years': ['1971']}},
-            self.processor.build_holdings_dct()
             )
 
     def test__contigify_list( self ):
@@ -176,6 +140,54 @@ class RapidFileProcessorTest( TestCase ):
             )
 
     # end class RapidFileProcessorTest
+
+
+class HoldingsDctBuilderTest( TestCase ):
+    """ Tests models.HoldingsDctBuilder """
+
+    def setUp( self ):
+        """ Runs initialization. """
+        self.builder = HoldingsDctBuilder(
+            settings_app.TEST_FROM_RAPID_UTF8_FILEPATH,
+            )
+
+    def test__build_holdings_dct( self ):
+        """ Tests filtering and parsing of records for easyAccess db. """
+        self.assertEqual(
+            {u'00029483qs1SIZEGN1A55': {
+                u'call_number': '1-SIZE GN1 .A55',
+                u'issn': '0002-9483',
+                u'location': 'qs',
+                u'years': ['1919']},
+             u'00029629sciR11A6': {
+                u'call_number': 'R11 .A6',
+                u'issn': '0002-9629',
+                u'location': 'sci',
+                u'years': ['1926', '1928']},
+             u'0022197XrsmchJX1C58': {
+                u'call_number': 'JX1 .C58',
+                u'issn': '0022-197X',
+                u'location': 'rsmch',
+                u'years': ['1991', '1992']},
+             u'00318701sciTR1P58': {
+                u'call_number': 'TR1 .P58',
+                u'issn': '0031-8701',
+                u'location': 'sci',
+                u'years': ['1962']},
+             u'00802042qsQP1E7': {
+                u'call_number': 'QP1 .E7',
+                u'issn': '0080-2042',
+                u'location': 'qs',
+                u'years': ['1937', '1938']},
+             u'04927079sci1SIZETN24T2A2': {
+                u'call_number': '1-SIZE TN24.T2 A2',
+                u'issn': '0492-7079',
+                u'location': 'sci',
+                u'years': ['1971']}},
+            self.builder.build_holdings_dct()
+            )
+
+    # end class HoldingsDctBuilderTest
 
 
 class RowFixerTest( TestCase ):
