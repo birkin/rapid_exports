@@ -144,14 +144,17 @@ class RapidFileGrabber( object ):
             f.close()
             ftp.quit()
         except Exception as e:
-            log.error( 'exception, `%s`' % unicode(repr(e)) )
+            log.error( 'exception, `%s`' % unicode(repr(e)) ); raise Exception( unicode(repr(e)) )
         return
 
     def unzip_file( self ):
         """ Unzips file.
             Called by ProcessFileFromRapidHelper.initiate_work(). """
         log.debug( 'unzip_file() zipped-filepath, `%s`; unzipped-directory, `%s`' % (self.local_destination_filepath, self.local_destination_extract_directory) )
-        zip_ref = zipfile.ZipFile( self.local_destination_filepath )
+        try:
+            zip_ref = zipfile.ZipFile( self.local_destination_filepath )
+        except Exception as e:
+            log.error( 'exception, `%s`' % unicode(repr(e)) ); raise Exception( unicode(repr(e)) )
         zip_ref.extractall( self.local_destination_extract_directory )
         return
 
