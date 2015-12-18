@@ -135,7 +135,7 @@ class RapidFileGrabber( object ):
     def grab_file( self ):
         """ Grabs file.
             Called by ProcessFileFromRapidHelper.initiate_work(). """
-        log.debug( 'grab_file() remote_filepath, `%s`; local_destination_filepath, `%s`' % (self.remote_filepath, self.local_destination_filepath) )
+        log.debug( 'grab_file() remote_server_name, `%s`; remote_filepath, `%s`; local_destination_filepath, `%s`' % (self.remote_server_name, self.remote_filepath, self.local_destination_filepath) )
         try:
             ftp = ftplib.FTP( self.remote_server_name )
             ftp.login( self.remote_server_username, self.remote_server_password )
@@ -168,20 +168,20 @@ class RapidFileProcessor( object ):
     def __init__(self, from_rapid_filepath, from_rapid_utf8_filepath ):
         self.from_rapid_filepath = from_rapid_filepath  # actual initial file from rapid
         self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
-        self.defs_dct = {  # proper row field-definitions
-            'library': 0,
-            'branch': 1,
-            'location': 2,
-            'callnumber': 3,
-            'title': 4,
-            'format': 5,
-            'issn_num': 6,
-            'issn_type': 7,
-            'vol_start': 8,
-            'vol_end': 9,
-            'year': 10
-            }
-        self.row_fixer = RowFixer( self.defs_dct )
+        # self.defs_dct = {  # proper row field-definitions
+        #     'library': 0,
+        #     'branch': 1,
+        #     'location': 2,
+        #     'callnumber': 3,
+        #     'title': 4,
+        #     'format': 5,
+        #     'issn_num': 6,
+        #     'issn_type': 7,
+        #     'vol_start': 8,
+        #     'vol_end': 9,
+        #     'year': 10
+        #     }
+        # self.row_fixer = RowFixer( self.defs_dct )
         self.holdings_defs_dct = {
             'key': 0, 'issn': 1, 'location': 2, 'callnumber': 3, 'year_start': 4, 'year_end': 5 }
 
@@ -191,7 +191,8 @@ class RapidFileProcessor( object ):
             Called by ProcessFileFromRapidHelper.initiate_work() """
         if self.check_utf8() is False:
             self.make_utf8()
-        holdings_dct = self.build_holdings_dct()
+        holdings_dct_builder = HoldingsDctBuilder( self.from_rapid_utf8_filepath )
+        holdings_dct = holdings_dct_builder.build_holdings_dct()
         holdings_lst = self.build_holdings_lst( holdings_dct )
         self.update_dev_db( holdings_lst )
         return holdings_lst
@@ -223,63 +224,8 @@ class RapidFileProcessor( object ):
                         output_file.write( line.encode('utf-8') )
                     except Exception as e:
                         log.error( 'exception, `%s`' % unicode(repr(e)) )
+        log.debug( 'utf8 file now at, `%s`' % self.from_rapid_utf8_filepath )
         return
-
-    def build_holdings_dct( self ):
-        """ Iterates through file, grabbing normalized print holdings.
-            Sample print entries:
-                `RBN,Main Library,sci,TR1 .P58,Photographic abstracts,Print,0031-8701,ISSN,,,1962`
-                `RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie...,Print,0080-2042,ISSN,1,69,1938`
-            Note: there are unescaped commas in some of the titles. Grrr.
-            Builds and returns a dict like {
-                u'00029629sciR11A6': {
-                    u'call_number': 'R11 .A6',
-                    u'issn': '0002-9629',
-                    u'location': 'sci',
-                    u'years': ['1926', '1928'] },  # years are sorted
-                u'abc123': {
-                    ... },
-                    }
-            Called by parse_file_from_rapid() """
-        holdings_dct = {}
-        csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
-        for row in csv_ref:  # row is type() `list`
-            if 'Print' not in row:
-                continue
-            # int_lst = [ int(x) for x in lst ]
-            row = [ field.decode('utf-8') for field in row ]
-            if len( row ) > 11:  # titles with commas
-                row = self.row_fixer.fix_row( row )
-            ( key, issn, location, callnumber, year ) = self._build_holdings_elements( row )
-            holdings_dct = self._update_holdings_dct( holdings_dct, key, issn, location, callnumber, year )
-        log.debug( 'holdings_dct, ```%s```' % pprint.pformat(holdings_dct) )
-        return holdings_dct
-
-    def _build_holdings_elements( self, row ):
-        """ Extracts data from row-list.
-            Called by build_holdings_dct() """
-        # log.debug( 'row, ```%s```' % pprint.pformat(row) )
-        callnumber = row[self.defs_dct['callnumber']]
-        issn = row[self.defs_dct['issn_num']]
-        location = row[self.defs_dct['location']]
-        year = row[self.defs_dct['year']]
-        normalized_issn = issn.replace( '-', '' )
-        normalized_callnumber = callnumber.replace( '-', '' ).replace( ' ', '' ).replace( '.', '' )
-        key = '%s%s%s' % ( normalized_issn, location, normalized_callnumber  )
-        return ( key, issn, location, callnumber, year )
-
-    def _update_holdings_dct( self, holdings, key, issn, location, callnumber, year ):
-        """ Updates holdings dct.
-            Called by: build_holdings_dct() """
-        if key not in holdings.keys():
-            holdings[key] = {
-                'issn': issn, 'location': location, 'call_number': callnumber, 'years': [year] }
-        else:
-            if year and year not in holdings[key]['years']:
-                holdings[key]['years'].append( year )
-                holdings[key]['years'].sort()
-        # log.debug( 'holdings, ```%s```' % pprint.pformat(holdings) )
-        return holdings
 
     def build_holdings_lst( self, holdings_dct ):
         """ Converts the holdings_dct into a list of entries ready for db update.
@@ -303,24 +249,12 @@ class RapidFileProcessor( object ):
             Called by build_holdings_list() """
         contig_lst = []
         if lst == ['']:
-            return contig_list
+            return contig_lst
         int_lst = [ int(x) for x in lst ]
         for k, g in itertools.groupby( enumerate(int_lst), lambda (i,x):i-x ):
             contig_lst.append( map(operator.itemgetter(1), g) )
         log.debug( 'contig_lst, `%s`' % contig_lst )
         return contig_lst
-
-    # def _contigify_list( self, lst ):
-    #     """ Converts sorted list entries into sub-lists that are contiguous.
-    #         Eg: [ 1, 2, 4, 5 ] -> [ [1, 2], [4, 5] ]
-    #         Credit: <http://stackoverflow.com/questions/3149440/python-splitting-list-based-on-missing-numbers-in-a-sequence>
-    #         Called by build_holdings_list() """
-    #     int_lst = [ int(x) for x in lst ]
-    #     contig_lst = []
-    #     for k, g in itertools.groupby( enumerate(int_lst), lambda (i,x):i-x ):
-    #         contig_lst.append( map(operator.itemgetter(1), g) )
-    #     log.debug( 'contig_lst, `%s`' % contig_lst )
-    #     return contig_lst
 
     def _build_years_held( self, contig_lst ):
         """ Converts contig_list to list of [ {'start': year-a, 'end': 'year-b'}, {'start': year-c, 'end': 'year-d'} ] entries.
@@ -390,6 +324,142 @@ class RapidFileProcessor( object ):
         return
 
     # end class RapidFileProcessor
+
+
+class HoldingsDctBuilder( object ):
+    """ Builds dct of holdings from file.
+        Non-django class. """
+
+    def __init__(self, from_rapid_utf8_filepath ):
+        self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
+        self.defs_dct = {  # proper row field-definitions
+            'library': 0,
+            'branch': 1,
+            'location': 2,
+            'callnumber': 3,
+            'title': 4,
+            'format': 5,
+            'issn_num': 6,
+            'issn_type': 7,
+            'vol_start': 8,
+            'vol_end': 9,
+            'year': 10
+            }
+        self.row_fixer = RowFixer( self.defs_dct )
+        self.holdings_defs_dct = {
+            'key': 0, 'issn': 1, 'location': 2, 'callnumber': 3, 'year_start': 4, 'year_end': 5 }
+
+    def build_holdings_dct( self ):
+        """ Iterates through file, grabbing normalized print holdings.
+            Sample print entries:
+                `RBN,Main Library,sci,TR1 .P58,Photographic abstracts,Print,0031-8701,ISSN,,,1962`
+                `RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie...,Print,0080-2042,ISSN,1,69,1938`
+            Note: there are unescaped commas in some of the titles. Grrr.
+            Builds and returns a dict like {
+                u'00029629sciR11A6': {
+                    u'call_number': 'R11 .A6',
+                    u'issn': '0002-9629',
+                    u'location': 'sci',
+                    u'years': ['1926', '1928'] },  # years are sorted
+                u'abc123': {
+                    ... },
+                    }
+            Called by RapidFileProcessor.parse_file_from_rapid() """
+        log.debug( 'starting build_holdings_dct()' )
+        ( holdings_dct, csv_ref, entries_count ) = self.prep_holdings_dct_processing()
+        for (idx, row) in enumerate(csv_ref):  # row is type() `list`
+            self.track_row( idx, entries_count )
+            if 'Print' not in row:
+                continue
+            ( key, issn, location, callnumber, year ) = self.process_file_row( row )
+            holdings_dct = self.update_holdings_dct( holdings_dct, key, issn, location, callnumber, year )
+        log.debug( 'holdings_dct, ```%s```' % pprint.pformat(holdings_dct) )
+        return holdings_dct
+
+    def prep_holdings_dct_processing( self ):
+        """ Sets initial vars.
+            Called by build_holdings_dct() """
+        holdings_dct = {}
+        tmp_csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
+        entries_count = sum( 1 for row in tmp_csv_ref )  # runs through file, so have to open again
+        csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
+        log.debug( 'entries_count, `%s`' % entries_count )
+        return ( holdings_dct, csv_ref, entries_count )
+
+    def track_row( self, row_idx, entries_count ):
+        """ For now, logs progress, can update status-db in future.
+            Called by build_holdings_dct() """
+        prcnt = int( entries_count * .1 )  # ten percent
+        if row_idx % prcnt == 0:  # uses modulo
+            prcnt_done = row_idx / prcnt
+            log.debug( '%s percent done (on row %s of %s)' % (prcnt_done, row_idx+1, entries_count) )  # +1 for 0 index
+        return
+
+    def process_file_row( self, row ):
+        """ Fixes row if necessary and builds elements.
+            Called by build_holdings_dct() """
+        row = [ field.decode('utf-8') for field in row ]
+        if len( row ) > 11:  # titles with commas
+            row = self.row_fixer.fix_row( row )
+        ( key, issn, location, callnumber, year ) = self._build_holdings_elements( row )
+        return ( key, issn, location, callnumber, year )
+
+    # def build_holdings_dct( self ):
+    #     """ Iterates through file, grabbing normalized print holdings.
+    #         Sample print entries:
+    #             `RBN,Main Library,sci,TR1 .P58,Photographic abstracts,Print,0031-8701,ISSN,,,1962`
+    #             `RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie...,Print,0080-2042,ISSN,1,69,1938`
+    #         Note: there are unescaped commas in some of the titles. Grrr.
+    #         Builds and returns a dict like {
+    #             u'00029629sciR11A6': {
+    #                 u'call_number': 'R11 .A6',
+    #                 u'issn': '0002-9629',
+    #                 u'location': 'sci',
+    #                 u'years': ['1926', '1928'] },  # years are sorted
+    #             u'abc123': {
+    #                 ... },
+    #                 }
+    #         Called by parse_file_from_rapid() """
+    #     holdings_dct = {}
+    #     csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
+    #     for row in csv_ref:  # row is type() `list`
+    #         if 'Print' not in row:
+    #             continue
+    #         row = [ field.decode('utf-8') for field in row ]
+    #         if len( row ) > 11:  # titles with commas
+    #             row = self.row_fixer.fix_row( row )
+    #         ( key, issn, location, callnumber, year ) = self._build_holdings_elements( row )
+    #         holdings_dct = self._update_holdings_dct( holdings_dct, key, issn, location, callnumber, year )
+    #     log.debug( 'holdings_dct, ```%s```' % pprint.pformat(holdings_dct) )
+    #     return holdings_dct
+
+    def _build_holdings_elements( self, row ):
+        """ Extracts data from row-list.
+            Called by _process_file_row() """
+        # log.debug( 'row, ```%s```' % pprint.pformat(row) )
+        callnumber = row[self.defs_dct['callnumber']]
+        issn = row[self.defs_dct['issn_num']]
+        location = row[self.defs_dct['location']]
+        year = row[self.defs_dct['year']]
+        normalized_issn = issn.replace( '-', '' )
+        normalized_callnumber = callnumber.replace( '-', '' ).replace( ' ', '' ).replace( '.', '' )
+        key = '%s%s%s' % ( normalized_issn, location, normalized_callnumber  )
+        return ( key, issn, location, callnumber, year )
+
+    def update_holdings_dct( self, holdings, key, issn, location, callnumber, year ):
+        """ Updates holdings dct.
+            Called by: build_holdings_dct() """
+        if key not in holdings.keys():
+            holdings[key] = {
+                'issn': issn, 'location': location, 'call_number': callnumber, 'years': [year] }
+        else:
+            if year and year not in holdings[key]['years']:
+                holdings[key]['years'].append( year )
+                holdings[key]['years'].sort()
+        # log.debug( 'holdings, ```%s```' % pprint.pformat(holdings) )
+        return holdings
+
+    # end class HoldingsDctBuilder
 
 
 class RowFixer( object ):
