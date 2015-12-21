@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import codecs, csv, datetime, ftplib, itertools, json, logging, operator, os, pprint, shutil, time, zipfile
 import MySQLdb  # really pymysql; see config/__init__.py
+import paramiko
 from django.conf import settings as project_settings
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -136,16 +137,30 @@ class RapidFileGrabber( object ):
         """ Grabs file.
             Called by ProcessFileFromRapidHelper.initiate_work(). """
         log.debug( 'grab_file() remote_server_name, `%s`; remote_filepath, `%s`; local_destination_filepath, `%s`' % (self.remote_server_name, self.remote_filepath, self.local_destination_filepath) )
+        ( sftp, transport ) = ( None, None )
         try:
-            ftp = ftplib.FTP( self.remote_server_name )
-            ftp.login( self.remote_server_username, self.remote_server_password )
-            f = open( self.local_destination_filepath, 'wb' )
-            ftp.retrbinary( "RETR " + self.remote_filepath, f.write )
-            f.close()
-            ftp.quit()
+            transport = paramiko.Transport( (self.remote_server_name, 22) )
+            transport.connect( username=self.remote_server_username, password=self.remote_server_password )
+            sftp = paramiko.SFTPClient.from_transport( transport )
+            sftp.get( self.remote_filepath, self.local_destination_filepath )
         except Exception as e:
             log.error( 'exception, `%s`' % unicode(repr(e)) ); raise Exception( unicode(repr(e)) )
         return
+
+    # def grab_file( self ):
+    #     """ Grabs file.
+    #         Called by ProcessFileFromRapidHelper.initiate_work(). """
+    #     log.debug( 'grab_file() remote_server_name, `%s`; remote_filepath, `%s`; local_destination_filepath, `%s`' % (self.remote_server_name, self.remote_filepath, self.local_destination_filepath) )
+    #     try:
+    #         ftp = ftplib.FTP( self.remote_server_name )
+    #         ftp.login( self.remote_server_username, self.remote_server_password )
+    #         f = open( self.local_destination_filepath, 'wb' )
+    #         ftp.retrbinary( "RETR " + self.remote_filepath, f.write )
+    #         f.close()
+    #         ftp.quit()
+    #     except Exception as e:
+    #         log.error( 'exception, `%s`' % unicode(repr(e)) ); raise Exception( unicode(repr(e)) )
+    #     return
 
     def unzip_file( self ):
         """ Unzips file.
