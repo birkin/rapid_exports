@@ -229,6 +229,8 @@ class RapidFileProcessor( object ):
         return
 
     def _run_utf8_write( self, input_file, output_file ):
+        """ Runs the line-by-line utf8 transform.
+            Called by make_utf8() """
         for line in input_file:
             try:
                 # assert( type(line) == unicode )
@@ -237,20 +239,6 @@ class RapidFileProcessor( object ):
                 log.error( 'exception, `%s`' % unicode(repr(e)) )
                 raise Exception( unicode(repr(e)) )
         return
-
-    # def make_utf8( self ):
-    #     """ Iterates through each line; ensures it can be converted to utf-8.
-    #         Called by parse_file_from_rapid() """
-    #     with codecs.open( self.from_rapid_filepath, 'rb', 'utf-16' ) as input_file:
-    #         with open( self.from_rapid_utf8_filepath, 'wb' ) as output_file:
-    #             for line in input_file:
-    #                 try:
-    #                     # assert( type(line) == unicode )
-    #                     output_file.write( line.encode('utf-8') )
-    #                 except Exception as e:
-    #                     log.error( 'exception, `%s`' % unicode(repr(e)) )
-    #     log.debug( 'utf8 file now at, `%s`' % self.from_rapid_utf8_filepath )
-    #     return
 
     def build_holdings_lst( self, holdings_dct ):
         """ Converts the holdings_dct into a list of entries ready for db update.
