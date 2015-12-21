@@ -7,6 +7,9 @@ from rapid_app import settings_app
 from rapid_app.models import HoldingsDctBuilder, RapidFileGrabber, RapidFileProcessor, RowFixer
 
 
+# TestCase.maxDiff = None
+
+
 class RapidFileGrabberTest( TestCase ):
     """ Tests models.RapidFileGrabber() """
 
