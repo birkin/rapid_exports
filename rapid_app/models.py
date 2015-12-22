@@ -351,6 +351,14 @@ class HoldingsDctBuilder( object ):
         self.row_fixer = RowFixer( self.defs_dct )
         self.holdings_defs_dct = {
             'key': 0, 'issn': 1, 'location': 2, 'callnumber': 3, 'year_start': 4, 'year_end': 5 }
+        self.locations_dct = self.update_locations_dct()
+
+    def update_locations_dct( self ):
+        """ Populates class attribute with locations dct, used to populate `building` field.
+            Called by __init__() """
+        r = requests.get( settings_app.LOCATIONS_URL )
+        dct = r.json()
+        return dct
 
     def build_holdings_dct( self ):
         """ Iterates through file, grabbing normalized print holdings.
@@ -425,10 +433,8 @@ class HoldingsDctBuilder( object ):
         """ Adds building-location.
             Called by _build_holdings_elements() """
         building = None
-        r = requests.get( settings_app.LOCATIONS_URL )
-        jdct = r.json()
         try:
-            building = jdct['result']['items'][location]['building']
+            building = self.locations_dct['result']['items'][location]['building']
         except KeyError:
             if location.startswith('r'):
                 building = 'Rock'
