@@ -163,76 +163,45 @@ class HoldingsDctBuilderTest( TestCase ):
     def test__build_holdings_dct( self ):
         """ Tests filtering and parsing of records for easyAccess db. """
         # pprint.pprint( self.builder.build_holdings_dct() )
-        self.assertEqual(
-            {u'00029483foo1SIZEGN1A55': {u'building': u'foo',
-                                         u'call_number': u'1-SIZE GN1 .A55',
-                                         u'issn': u'0002-9483',
-                                         u'location': u'qs',
-                                         u'years': [u'1919']},
-             u'00029629fooR11A6': {u'building': u'foo',
-                                   u'call_number': u'R11 .A6',
-                                   u'issn': u'0002-9629',
-                                   u'location': u'sci',
-                                   u'years': [u'1926', u'1928']},
-             u'0022197XfooJX1C58': {u'building': u'foo',
-                                    u'call_number': u'JX1 .C58',
-                                    u'issn': u'0022-197X',
-                                    u'location': u'rsmch',
-                                    u'years': [u'1991', u'1992']},
-             u'00318701fooTR1P58': {u'building': u'foo',
-                                    u'call_number': u'TR1 .P58',
-                                    u'issn': u'0031-8701',
-                                    u'location': u'sci',
-                                    u'years': [u'1962']},
-             u'00802042fooQP1E7': {u'building': u'foo',
-                                   u'call_number': u'QP1 .E7',
-                                   u'issn': u'0080-2042',
-                                   u'location': u'qs',
-                                   u'years': [u'1937', u'1938']},
-             u'04927079foo1SIZETN24T2A2': {u'building': u'foo',
-                                           u'call_number': u'1-SIZE TN24.T2 A2',
-                                           u'issn': u'0492-7079',
-                                           u'location': u'sci',
-                                           u'years': [u'1971']}},
+        self.assertEqual( {
+            u'00029483Annex1SIZEGN1A55': {
+                u'building': u'Annex',
+                u'call_number': u'1-SIZE GN1 .A55',
+                u'issn': u'0002-9483',
+                u'location': u'qs',
+                u'years': [u'1919']},
+            u'00029629SciencesR11A6': {
+                u'building': u'Sciences',
+                u'call_number': u'R11 .A6',
+                u'issn': u'0002-9629',
+                u'location': u'sci',
+                u'years': [u'1926', u'1928']},
+            u'0022197XRockJX1C58': {
+                u'building': u'Rock',
+                u'call_number': u'JX1 .C58',
+                u'issn': u'0022-197X',
+                u'location': u'rsmch',
+                u'years': [u'1991', u'1992']},
+            u'00318701SciencesTR1P58': {
+                u'building': u'Sciences',
+                u'call_number': u'TR1 .P58',
+                u'issn': u'0031-8701',
+                u'location': u'sci',
+                u'years': [u'1962']},
+            u'00802042AnnexQP1E7': {
+                u'building': u'Annex',
+                u'call_number': u'QP1 .E7',
+                u'issn': u'0080-2042',
+                u'location': u'qs',
+                u'years': [u'1937', u'1938']},
+            u'04927079Sciences1SIZETN24T2A2': {
+                u'building': u'Sciences',
+                u'call_number': u'1-SIZE TN24.T2 A2',
+                u'issn': u'0492-7079',
+                u'location': u'sci',
+                u'years': [u'1971']}},
             self.builder.build_holdings_dct()
             )
-
-    # def test__build_holdings_dct( self ):
-    #     """ Tests filtering and parsing of records for easyAccess db. """
-    #     pprint.pprint( self.builder.build_holdings_dct() )
-    #     self.assertEqual(
-    #         {u'00029483qs1SIZEGN1A55': {
-    #             u'call_number': '1-SIZE GN1 .A55',
-    #             u'issn': '0002-9483',
-    #             u'location': 'qs',
-    #             u'years': ['1919']},
-    #          u'00029629sciR11A6': {
-    #             u'call_number': 'R11 .A6',
-    #             u'issn': '0002-9629',
-    #             u'location': 'sci',
-    #             u'years': ['1926', '1928']},
-    #          u'0022197XrsmchJX1C58': {
-    #             u'call_number': 'JX1 .C58',
-    #             u'issn': '0022-197X',
-    #             u'location': 'rsmch',
-    #             u'years': ['1991', '1992']},
-    #          u'00318701sciTR1P58': {
-    #             u'call_number': 'TR1 .P58',
-    #             u'issn': '0031-8701',
-    #             u'location': 'sci',
-    #             u'years': ['1962']},
-    #          u'00802042qsQP1E7': {
-    #             u'call_number': 'QP1 .E7',
-    #             u'issn': '0080-2042',
-    #             u'location': 'qs',
-    #             u'years': ['1937', '1938']},
-    #          u'04927079sci1SIZETN24T2A2': {
-    #             u'call_number': '1-SIZE TN24.T2 A2',
-    #             u'issn': '0492-7079',
-    #             u'location': 'sci',
-    #             u'years': ['1971']}},
-    #         self.builder.build_holdings_dct()
-    #         )
 
     # end class HoldingsDctBuilderTest
 
