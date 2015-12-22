@@ -53,7 +53,7 @@ class ProcessFileFromRapidHelper( object ):
     def initiate_work( self, request ):
         """ Initiates work.
             Called by views.process_file_from_rapid() """
-        log.debug( 'starting processing' )
+        # log.debug( 'starting processing' )
         grabber = self._setup_grabber()
         processor = RapidFileProcessor(
             settings_app.FROM_RAPID_FILEPATH, settings_app.FROM_RAPID_UTF8_FILEPATH )
@@ -96,7 +96,7 @@ class TasksHelper( object ):
     def make_context( self, request ):
         """ Prepares data.
             Called by views.tasks() """
-        log.debug( 'starting tasks' )
+        log.info( 'starting tasks' )
         d = {
                 'process_file_from_rapid_url': reverse('process_file_from_rapid_url'),
                 'history': [
@@ -240,7 +240,7 @@ class RapidFileProcessor( object ):
             holdings_dct[key]['years_held'] = self._build_years_held( holdings_dct[key]['years_contig'] )
             holdings_lst = self._update_holdings_lst( holdings_lst, val )
         sorted_lst = sorted( holdings_lst )
-        log.debug( 'holdings_lst, ```%s```' % pprint.pformat(sorted_lst) )
+        log.info( 'holdings_lst, ```%s```' % pprint.pformat(sorted_lst) )
         return sorted_lst
 
     def _contigify_list( self, lst ):
@@ -384,7 +384,7 @@ class HoldingsDctBuilder( object ):
                 continue
             ( key, issn, location, building, callnumber, year ) = self.process_file_row( row )
             holdings_dct = self.update_holdings_dct( holdings_dct, key, issn, location, building, callnumber, year )
-        log.debug( 'holdings_dct, ```%s```' % pprint.pformat(holdings_dct) )
+        log.info( 'holdings_dct, ```%s```' % pprint.pformat(holdings_dct) )
         return holdings_dct
 
     def prep_holdings_dct_processing( self ):
