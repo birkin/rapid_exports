@@ -82,7 +82,8 @@ class ProcessFileFromRapidHelper( object ):
             output = json.dumps( data, sort_keys=True, indent=2 )
             resp = HttpResponse( output, content_type=u'application/javascript; charset=utf-8' )
         else:
-            resp = HttpResponseRedirect( reverse('tasks_url') )
+            # resp = HttpResponseRedirect( reverse('tasks_url') )
+            resp = HttpResponseRedirect( '/rapid_manager/admin/rapid_app/printtitledev/' )
         return resp
 
     # end class ProcessFileFromRapidHelper
@@ -149,21 +150,6 @@ class RapidFileGrabber( object ):
             log.error( 'exception, `%s`' % unicode(repr(e)) ); raise Exception( unicode(repr(e)) )
         return
 
-    # def grab_file( self ):
-    #     """ Grabs file.
-    #         Called by ProcessFileFromRapidHelper.initiate_work(). """
-    #     log.debug( 'grab_file() remote_server_name, `%s`; remote_filepath, `%s`; local_destination_filepath, `%s`' % (self.remote_server_name, self.remote_filepath, self.local_destination_filepath) )
-    #     try:
-    #         ftp = ftplib.FTP( self.remote_server_name )
-    #         ftp.login( self.remote_server_username, self.remote_server_password )
-    #         f = open( self.local_destination_filepath, 'wb' )
-    #         ftp.retrbinary( "RETR " + self.remote_filepath, f.write )
-    #         f.close()
-    #         ftp.quit()
-    #     except Exception as e:
-    #         log.error( 'exception, `%s`' % unicode(repr(e)) ); raise Exception( unicode(repr(e)) )
-    #     return
-
     def unzip_file( self ):
         """ Unzips file.
             Called by ProcessFileFromRapidHelper.initiate_work(). """
@@ -187,8 +173,6 @@ class RapidFileProcessor( object ):
         self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
         self.holdings_defs_dct = {
             'key': 0, 'issn': 1, 'location': 2, 'building': 3, 'callnumber': 4, 'year_start': 5, 'year_end': 6 }
-        # self.holdings_defs_dct = {
-        #     'key': 0, 'issn': 1, 'location': 2, 'callnumber': 3, 'year_start': 4, 'year_end': 5 }
 
     def parse_file_from_rapid( self ):
         """ Extracts print holdings from the file-from-rapid.
