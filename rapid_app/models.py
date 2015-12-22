@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import codecs, csv, datetime, ftplib, itertools, json, logging, operator, os, pprint, shutil, time, zipfile
 import MySQLdb  # really pymysql; see config/__init__.py
 import paramiko
+import requests
 from django.conf import settings as project_settings
 from django.core.urlresolvers import reverse
 from django.db import models
