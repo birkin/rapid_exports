@@ -443,7 +443,7 @@ class HoldingsDctBuilder( object ):
             elif location.startswith('q'):
                 building = 'Annex'
             else:
-                logger.warning( "Location code {} not recognized.".format(location) )
+                log.warning( 'location code {} not recognized'.format(location) )
                 building = location
         return building
 
