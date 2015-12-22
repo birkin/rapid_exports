@@ -12,7 +12,7 @@ class PrintTitleDevAdmin( admin.ModelAdmin ):
         'key', 'issn', 'start', 'end', 'call_number', 'building', 'location', 'date_updated' ]
     search_fields = list_display
     # readonly_fields = list_display
-    list_filter = [ 'location', 'issn' ]
+    list_filter = [ 'building', 'location', 'issn' ]
 
     # end class
 
