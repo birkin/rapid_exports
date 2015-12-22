@@ -164,27 +164,13 @@ class RapidFileGrabber( object ):
     # end class RapidFileGrabber
 
 
-class RapidFileProcessor( object ):
-    """ Handles processing of file from Rapid.
+class Utf8Maker( object ):
+    """ Ensures file contains utf-8 data.
         Non-django class. """
 
     def __init__(self, from_rapid_filepath, from_rapid_utf8_filepath ):
         self.from_rapid_filepath = from_rapid_filepath  # actual initial file from rapid
         self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
-        self.holdings_defs_dct = {
-            'key': 0, 'issn': 1, 'location': 2, 'building': 3, 'callnumber': 4, 'year_start': 5, 'year_end': 6 }
-
-    def parse_file_from_rapid( self ):
-        """ Extracts print holdings from the file-from-rapid.
-            That file contains both print and online holdings.
-            Called by ProcessFileFromRapidHelper.initiate_work() """
-        if self.check_utf8() is False:
-            self.make_utf8()
-        holdings_dct_builder = HoldingsDctBuilder( self.from_rapid_utf8_filepath )
-        holdings_dct = holdings_dct_builder.build_holdings_dct()
-        holdings_lst = self.build_holdings_lst( holdings_dct )
-        self.update_dev_db( holdings_lst )
-        return holdings_lst
 
     def check_utf8( self, filepath=None ):
         """ Ensures file is utf-8 readable.
@@ -227,6 +213,86 @@ class RapidFileProcessor( object ):
                 log.error( 'exception, `%s`' % unicode(repr(e)) )
                 raise Exception( unicode(repr(e)) )
         return
+
+    # end class Utf8Maker
+
+
+class RapidFileProcessor( object ):
+    """ Handles processing of file from Rapid.
+        Non-django class. """
+
+    def __init__(self, from_rapid_filepath, from_rapid_utf8_filepath ):
+        # self.from_rapid_filepath = from_rapid_filepath  # actual initial file from rapid
+        self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
+        self.holdings_defs_dct = {
+            'key': 0, 'issn': 1, 'location': 2, 'building': 3, 'callnumber': 4, 'year_start': 5, 'year_end': 6 }
+        self.utf8_maker = Utf8Maker( from_rapid_filepath, from_rapid_utf8_filepath )
+
+    def parse_file_from_rapid( self ):
+        """ Extracts print holdings from the file-from-rapid.
+            That file contains both print and online holdings.
+            Called by ProcessFileFromRapidHelper.initiate_work() """
+        if self.utf8_maker.check_utf8() is False:
+            self.utf8_maker.make_utf8()
+        holdings_dct_builder = HoldingsDctBuilder( self.from_rapid_utf8_filepath )
+        holdings_dct = holdings_dct_builder.build_holdings_dct()
+        holdings_lst = self.build_holdings_lst( holdings_dct )
+        self.update_dev_db( holdings_lst )
+        return holdings_lst
+
+    # def parse_file_from_rapid( self ):
+    #     """ Extracts print holdings from the file-from-rapid.
+    #         That file contains both print and online holdings.
+    #         Called by ProcessFileFromRapidHelper.initiate_work() """
+    #     if self.check_utf8() is False:
+    #         self.make_utf8()
+    #     holdings_dct_builder = HoldingsDctBuilder( self.from_rapid_utf8_filepath )
+    #     holdings_dct = holdings_dct_builder.build_holdings_dct()
+    #     holdings_lst = self.build_holdings_lst( holdings_dct )
+    #     self.update_dev_db( holdings_lst )
+    #     return holdings_lst
+
+    # def check_utf8( self, filepath=None ):
+    #     """ Ensures file is utf-8 readable.
+    #         Will error and return False if not.
+    #         Called by parse_file_from_rapid() """
+    #     path = filepath if filepath else self.from_rapid_filepath
+    #     log.debug( 'checked path, `%s`' % path )
+    #     utf8 = False
+    #     with codecs.open( path, 'rb', 'utf-8' ) as myfile:
+    #         try:
+    #             for line in myfile:  # reads line-by-line; doesn't tax memory on big files
+    #                 pass
+    #             utf8 = True
+    #         except Exception as e:
+    #             log.error( 'EXPECTED exception, `%s`' % unicode(repr(e)) )
+    #     return utf8
+
+    # def make_utf8( self ):
+    #     """ Iterates through each line; ensures it can be converted to utf-8.
+    #         Called by parse_file_from_rapid() """
+    #     try:
+    #         log.debug( 'src-path, `%s`; dest-path, `%s`' % (self.from_rapid_filepath, self.from_rapid_utf8_filepath) )
+    #         with codecs.open( self.from_rapid_filepath, 'rb', 'utf-16' ) as input_file:
+    #             with open( self.from_rapid_utf8_filepath, 'wb' ) as output_file:
+    #                 self._run_utf8_write( input_file, output_file )
+    #         log.debug( 'utf8 file now at, `%s`' % self.from_rapid_utf8_filepath )
+    #     except Exception as e:
+    #         log.error( 'exception on source or destination file, `%s`' % unicode(repr(e)) )
+    #         raise Exception( unicode(repr(e)) )
+    #     return
+
+    # def _run_utf8_write( self, input_file, output_file ):
+    #     """ Runs the line-by-line utf8 transform.
+    #         Called by make_utf8() """
+    #     for line in input_file:
+    #         try:
+    #             # assert( type(line) == unicode )
+    #             output_file.write( line.encode('utf-8') )
+    #         except Exception as e:
+    #             log.error( 'exception, `%s`' % unicode(repr(e)) )
+    #             raise Exception( unicode(repr(e)) )
+    #     return
 
     def build_holdings_lst( self, holdings_dct ):
         """ Converts the holdings_dct into a list of entries ready for db update.
