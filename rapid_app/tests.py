@@ -86,21 +86,6 @@ class RapidFileProcessorTest( TestCase ):
             settings_app.TEST_FROM_RAPID_UTF8_FILEPATH,
             )
 
-    # def test__check_utf8_before( self ):
-    #     """ Tests detection of non-utf8 data. """
-    #     self.assertEqual(
-    #         False,
-    #         self.processor.check_utf8()
-    #         )
-
-    # def test__check_utf8_after( self ):
-    #     """ Tests detection of utf8 data. """
-    #     self.processor.make_utf8()
-    #     self.assertEqual(
-    #         True,
-    #         self.processor.check_utf8( settings_app.TEST_FROM_RAPID_UTF8_FILEPATH )
-    #         )
-
     def test__contigify_list( self ):
         """ Tests updating list of single elements to list of lists-of-contiguous elements. """
         start_lst = [ 1, 2, 3, 5, 6, 8 ]
