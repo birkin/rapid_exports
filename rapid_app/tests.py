@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import os, pprint
 from django.test import TestCase
 from rapid_app import settings_app
-from rapid_app.models import HoldingsDctBuilder, RapidFileGrabber, RapidFileProcessor, RowFixer
+from rapid_app.models import HoldingsDctBuilder, RapidFileGrabber, RapidFileProcessor, RowFixer, Utf8Maker
 
 
 TestCase.maxDiff = None
@@ -48,6 +48,34 @@ class RapidFileGrabberTest( TestCase ):
     # end class RapidFileGrabberTest
 
 
+class Utf8MakerTest( TestCase ):
+    """ Tests models.Utf8Maker """
+
+    def setUp( self ):
+        """ Runs initialization. """
+        self.utf8_maker = Utf8Maker(
+            settings_app.TEST_FROM_RAPID_FILEPATH,
+            settings_app.TEST_FROM_RAPID_UTF8_FILEPATH,
+            )
+
+    def test__check_utf8_before( self ):
+        """ Tests detection of non-utf8 data. """
+        self.assertEqual(
+            False,
+            self.utf8_maker.check_utf8()
+            )
+
+    def test__check_utf8_after( self ):
+        """ Tests detection of utf8 data. """
+        self.utf8_maker.make_utf8()
+        self.assertEqual(
+            True,
+            self.utf8_maker.check_utf8( settings_app.TEST_FROM_RAPID_UTF8_FILEPATH )
+            )
+
+    # end class Utf8MakerTest
+
+
 class RapidFileProcessorTest( TestCase ):
     """ Tests models.RapidFileProcessor """
 
@@ -58,20 +86,20 @@ class RapidFileProcessorTest( TestCase ):
             settings_app.TEST_FROM_RAPID_UTF8_FILEPATH,
             )
 
-    def test__check_utf8_before( self ):
-        """ Tests detection of non-utf8 data. """
-        self.assertEqual(
-            False,
-            self.processor.check_utf8()
-            )
+    # def test__check_utf8_before( self ):
+    #     """ Tests detection of non-utf8 data. """
+    #     self.assertEqual(
+    #         False,
+    #         self.processor.check_utf8()
+    #         )
 
-    def test__check_utf8_after( self ):
-        """ Tests detection of utf8 data. """
-        self.processor.make_utf8()
-        self.assertEqual(
-            True,
-            self.processor.check_utf8( settings_app.TEST_FROM_RAPID_UTF8_FILEPATH )
-            )
+    # def test__check_utf8_after( self ):
+    #     """ Tests detection of utf8 data. """
+    #     self.processor.make_utf8()
+    #     self.assertEqual(
+    #         True,
+    #         self.processor.check_utf8( settings_app.TEST_FROM_RAPID_UTF8_FILEPATH )
+    #         )
 
     def test__contigify_list( self ):
         """ Tests updating list of single elements to list of lists-of-contiguous elements. """
