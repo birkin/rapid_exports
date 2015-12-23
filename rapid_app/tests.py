@@ -5,6 +5,8 @@ import logging, os, pprint
 from django.test import TestCase
 from rapid_app import settings_app
 from rapid_app.models import HoldingsDctBuilder, RapidFileGrabber, RapidFileProcessor, RowFixer, Utf8Maker
+from sqlalchemy import create_engine as alchemy_create_engine
+from sqlalchemy.orm import sessionmaker as alchemy_sessionmaker, scoped_session as alchemy_scoped_session
 
 
 log = logging.getLogger(__name__)
@@ -268,10 +270,8 @@ class ManualDbHandlerTest( TestCase ):
     def _setup_db_session( self ):
         """ Initializes db_session.
             Called by setUp() """
-        from sqlalchemy import create_engine
-        from sqlalchemy.orm import sessionmaker, scoped_session
-        engine = create_engine( settings_app.DB_CONNECTION_URL )
-        Session = scoped_session( sessionmaker(bind=engine) )
+        engine = alchemy_create_engine( settings_app.DB_CONNECTION_URL )
+        Session = alchemy_scoped_session( alchemy_sessionmaker(bind=engine) )
         db_session = Session()
         self.db_session = db_session
         return
@@ -307,7 +307,19 @@ class ManualDbHandlerTest( TestCase ):
             ('the key', 'the issn', 1980, 1982, 'the location', 'the callnumber');
             '''
         result = self.db_session.execute( sql_a )
+        #
+        # resultset_lst = []
+        # for r in result:
+        #     resultset_lst.append( r )
+        # log.debug( 'checking CREATE result, %s' % pprint.pprint(resultset_lst) )
+        #
         result = self.db_session.execute( sql_b )
+        #
+        resultset_lst = []
+        for r in result:
+            resultset_lst.append( r )
+        log.debug( 'checking INSERT result, %s' % pprint.pprint(resultset_lst) )
+        #
         return
 
     def _ensure_test_table( self ):
@@ -339,6 +351,8 @@ class ManualDbHandlerTest( TestCase ):
             result = self.db_session.execute( sql )
         except Exception as e:
             raise Exception( '%s' % unicode(repr(e)) )
+        finally:
+            self.db_session.close()
         return
 
     # end class ManualDbHandlerTest

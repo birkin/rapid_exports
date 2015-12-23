@@ -14,6 +14,9 @@ from django.shortcuts import render
 from django.utils.encoding import smart_unicode
 from django.utils.text import slugify
 from rapid_app import settings_app
+from sqlalchemy import create_engine as alchemy_create_engine
+from sqlalchemy.orm import sessionmaker as alchemy_sessionmaker, scoped_session as alchemy_scoped_session
+
 
 log = logging.getLogger(__name__)
 
@@ -549,49 +552,44 @@ class RowFixer( object ):
 
 
 class ManualDbHandler( object ):
-    """ Reads/Writes to db-table not controlled by django.
-        Used to update production print-titles table.
+    """ Backs-up and writes to non-rapid-manager print-titles table.
         Non-django class. """
 
-    def __init__( self, dev_or_prod ):
-        self.DB_PORT = settings_app.DB_PORT
-        self.DB_NAME = settings_app.DB_NAME
-        if dev_or_prod == 'dev':
-            self.DB_HOST = settings_app.DEV_DB_HOST
-            self.DB_USER = settings_app.DEV_DB_USER
-            self.DB_PASSWORD = settings_app.DEV_DB_PASSWORD
-        else:
-            self.DB_HOST = settings_app.PROD_DB_HOST
-            self.DB_USER = settings_app.PROD_DB_USER
-            self.DB_PASSWORD = settings_app.PROD_DB_PASSWORD
-        self.connection_object = None
-        self.cursor_object = None
+    def __init__( self, CONNECTION_URL ):
+        self.connection_url = CONNECTION_URL
+        self.db_session = None
+        self._setup_db_session()
+
+    def _setup_db_session( self ):
+        """ Initializes session.
+            Called by TBD """
+        engine = alchemy_create_engine( settings_app.DB_CONNECTION_URL )
+        Session = alchemy_scoped_session( alchemy_sessionmaker(bind=engine) )
+        self.db_session = Session()
 
     def run_sql( self, sql ):
-        """ Executes sql; returns list of key-value data on SELECT.
+        """ Executes sql; returns a list (ok, an iterable) of tuple-rows on SELECT.
             Called by TBD """
-        dct_tuple = None
+        log.debug( 'sql, ```%s```' % sql )
         try:
-            self._setup_db_connection()
-            self.cursor_object.execute( sql )
-            dct_tuple = self.cursor_object.fetchall()  # tuple of row-dicts on SELECT
+            possible_resultset = self.db_session.execute( sql )
         except Exception as e:
-            log.error( 'error: %s' % unicode(repr(e)) )
+            log.error( 'error executing sql, ```%s```' % unicode(repr(e)) )
+            self.db_session.close()
             raise Exception( unicode(repr(e)) )
-        finally:
-            self._close_db_connection()
-        return dct_tuple
+        possible_resultset_lst = self._make_resultset_lst( possible_resultset )
+        db_session.close()
+        return possible_resultset_lst
 
-    def _setup_db_connection( self ):
-        """ Sets up connection; populates instance attributes.
-            Called by run_select() """
+    def _make_resultset_lst( possible_resultset ):
+        """ Returns list of tuple-rows if available.
+            Called by: TBD """
+        possible_resultset_lst = None
         try:
-            self.connection_object = MySQLdb.connect(
-                host=self.DB_HOST, port=self.DB_PORT, user=self.DB_USER, passwd=self.DB_PASSWORD, db=self.DB_NAME )
-            self.cursor_object = self.connection_object.cursor( MySQLdb.cursors.DictCursor )
-            return
-        except Exception as e:
-            self.logger.error( 'error: %s' % unicode(repr(e)) )
-            raise Exception( unicode(repr(e)) )
+            for tuple_row in possible_resultset:
+                possible_resultset_lst.append( tuple_row )
+        except ResourceClosedError:
+            log.debug( 'no data returned' )
+        return possible_resultset_lst
 
     # end class ManualDbHandler
