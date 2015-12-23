@@ -24,12 +24,8 @@ LOCATIONS_URL = unicode( os.environ['RAPID__LOCATIONS_JSON_URL'] )
 
 ## DB MANUAL ACCESS ##
 
-## prod db ##
-PROD_DB_HOST = unicode( os.environ['RAPID__PROD_DB_HOST'] )
-PROD_DB_USER = unicode( os.environ['RAPID__PROD_DB_USER'] )
-PROD_DB_PASSWORD = unicode( os.environ['RAPID__PROD_DB_PASSWORD'] )
-PROD_DB_NAME = unicode( os.environ['RAPID__PROD_DB_NAME'] )
-PROD_DB_TABLE = unicode( os.environ['RAPID__PROD_DB_TABLE'] )
+## update production db ##
+DB_CONNECTION_URL = unicode( os.environ['RAPID__MANUAL_DB_CONNECTION_URL'] )
 
 ###########
 ## TESTS ##

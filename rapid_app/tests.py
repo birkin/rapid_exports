@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-import os, pprint
+import logging, os, pprint
 from django.test import TestCase
 from rapid_app import settings_app
 from rapid_app.models import HoldingsDctBuilder, RapidFileGrabber, RapidFileProcessor, RowFixer, Utf8Maker
 
 
+log = logging.getLogger(__name__)
 TestCase.maxDiff = None
 
 
@@ -249,6 +250,93 @@ class RowFixerTest( TestCase ):
             )
 
     # end class RowFixerTest
+
+
+class ManualDbHandlerTest( TestCase ):
+    """ Tests models.ManualDbHandler """
+
+    def setUp( self ):
+        """ Makes sure no `dummy_test_table` exists, then creates it. """
+        log.debug( 'running setUp' )
+        self.db_session = None
+        self._setup_db_session()
+        self._ensure_no_test_table()
+        self._create_test_table()
+        self._ensure_test_table()
+
+    def _setup_db_session( self ):
+        """ Initializes db_session.
+            Called by setUp() """
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker, scoped_session
+        engine = create_engine( settings_app.DB_CONNECTION_URL )
+        Session = scoped_session( sessionmaker(bind=engine) )
+        db_session = Session()
+        self.db_session = db_session
+        return
+
+    def _ensure_no_test_table( self ):
+        """ Runs select which will fail, expectedly, if test-table does not exist.
+            Called by setUp() """
+        try:
+            result = self.db_session.execute( 'SELECT * FROM `dummy_test_table`' )
+            raise Exception( 'EXCEPTION: dummy_test_table found on test-initialization' )
+        except Exception as e:
+            pass
+        return
+
+    def _create_test_table( self ):
+        """ Creates test-table with two records
+            Called by setUp() """
+        sql_a = '''
+            CREATE TABLE `dummy_test_table` (
+            `key` varchar( 20 ) NOT NULL ,
+            `issn` varchar( 15 ) NOT NULL ,
+            `start` int( 11 )  NOT NULL ,
+            `end` int( 11 )  DEFAULT NULL ,
+            `location` varchar( 25 ) DEFAULT NULL ,
+            `call_number` varchar( 50 ) DEFAULT NULL ,
+            PRIMARY KEY (`key`)
+            );
+            '''
+        sql_b = '''
+            INSERT INTO `dummy_test_table`
+            (`key`, `issn`, `start`, `end`, `location`, `call_number`)
+            VALUES
+            ('the key', 'the issn', 1980, 1982, 'the location', 'the callnumber');
+            '''
+        result = self.db_session.execute( sql_a )
+        result = self.db_session.execute( sql_b )
+        return
+
+    def _ensure_test_table( self ):
+        """ Checks that `dummy_test_backup_table` has been created. """
+        flag = 'init'
+        sql = '''SELECT * FROM `dummy_test_table`;'''
+        resultset = self.db_session.execute( sql )
+        lst = []
+        for row in resultset:
+            lst.append( row )
+        # pprint.pprint( lst )
+        self.assertEqual(
+            [(u'the key', u'the issn', 1980, 1982, u'the location', u'the callnumber')],
+            lst
+            )
+
+    def test__make_backup( self ):
+        self.assertEqual( 1, 2 )
+
+    def tearDown( self ):
+        """ Deletes `dummy_test_table` and `dummy_test_backup_table` """
+        log.debug( 'running tearDown' )
+        sql = '''DROP TABLE  `dummy_test_table`;'''
+        try:
+            result = self.db_session.execute( sql )
+        except Exception as e:
+            raise Exception( '%s' % unicode(repr(e)) )
+        return
+
+    # end class ManualDbHandlerTest
 
 
 ## end ##
