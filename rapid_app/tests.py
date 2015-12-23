@@ -269,7 +269,7 @@ class SqlAlchemyTest( TestCase ):
     def _setup_db_session( self ):
         """ Initializes db_session.
             Called by setUp() """
-        engine = alchemy_create_engine( settings_app.DB_CONNECTION_URL )
+        engine = alchemy_create_engine( settings_app.TEST_DB_CONNECTION_URL )
         Session = alchemy_scoped_session( alchemy_sessionmaker(bind=engine) )
         db_session = Session()
         self.db_session = db_session
