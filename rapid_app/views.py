@@ -29,8 +29,8 @@ def process_file_from_rapid( request ):
     log.debug( 'response, ```%s```' % response )
     return response
 
-def update_production_easyA_titles( request ):
-    """ Backs up and updates easyAccess findit.print-titles db. """
+def update_titles( request ):
+    """ Backs up and updates easyAccess print-titles table. """
     data = update_titles_hlpr.run_update( request )
     response = update_titles_hlpr.make_response( request, data )
     return response
