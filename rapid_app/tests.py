@@ -253,7 +253,8 @@ class RowFixerTest( TestCase ):
 
 
 class ManualDbHandlerTest( TestCase ):
-    """ Tests models.ManualDbHandler """
+    """ Tests models.ManualDbHandler
+        Mostly, though, serves as documentation for how to use sqlalchemy to execute basic sql. """
 
     def setUp( self ):
         """ Makes sure no `dummy_test_table` exists, then creates it. """
@@ -323,8 +324,12 @@ class ManualDbHandlerTest( TestCase ):
             lst
             )
 
+    ## actual tests ##
+
     def test__make_backup( self ):
         self.assertEqual( 1, 2 )
+
+    ## end actual tests ##
 
     def tearDown( self ):
         """ Deletes `dummy_test_table` and `dummy_test_backup_table` """
