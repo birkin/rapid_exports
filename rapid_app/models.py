@@ -44,9 +44,9 @@ class PrintTitleDev( models.Model ):
     # end class PrintTitleDev
 
 
-##################
-## view helpers ##
-##################
+#########################
+## view helper classes ##
+#########################
 
 
 class TasksHelper( object ):
@@ -127,6 +127,13 @@ class UpdateTitlesHelper( object ):
     def run_update( self, request ):
         """ Calls the backup and update code.
             Called by views.update_production_easyA_titles() """
+        self._make_backup_table()
+        self._update_production_table()
+        return 'ok'
+
+    def _make_backup_table( self ):
+        """ Runs backup sql.
+            Called by run_update() """
         db_handler = ManualDbHandler( settings_app.DB_CONNECTION_URL )
         date_timestamp = datetime.datetime.now().strftime( '%Y%m%d_%H%M%S_%f' )  # datetime.datetime(2015, 12, 23, 15, 0, 59, 763188) -> '20151223_150059_763188'
         backup_table_name = '%s_backup_%s' % ( settings_app.DB_TITLES_TABLE, date_timestamp )
@@ -136,6 +143,11 @@ class UpdateTitlesHelper( object ):
         db_handler.setup_db_session( settings_app.DB_CONNECTION_URL )  # session created on init, closed after run_sql()
         db_handler.run_sql( backup_insert_sql )
         return 'ok'
+
+    def _update_production_table( self ):
+        """ Runs update-production sql.
+            Called by run_update() """
+        return 'foo'
 
     # end class UpdateTitlesHelper
 
