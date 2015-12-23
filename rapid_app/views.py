@@ -22,10 +22,17 @@ def tasks( request ):
     return response
 
 def process_file_from_rapid( request ):
-    """ Shows tasks window. """
+    """ Grabs and processes rapid extract file.
+        When done, shows titles admin. """
     data = process_file_from_rapid_hlper.initiate_work( request )
     response = process_file_from_rapid_hlper.make_response( request, data )
     log.debug( 'response, ```%s```' % response )
+    return response
+
+def update_production_easyA_titles( request ):
+    """ Backs up and updates easyAccess findit.print-titles db. """
+    data = update_titles_hlpr.run_update( request )
+    response = update_titles_hlpr.make_response( request, data )
     return response
 
 def hi( request ):

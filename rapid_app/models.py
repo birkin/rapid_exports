@@ -49,9 +49,38 @@ class PrintTitleDev( models.Model ):
 ##################
 
 
-class ProcessFileFromRapidHelper( object ):
-    """ Manages view.process_file_from_rapid() work.
+class TasksHelper( object ):
+    """ Manages view.tasks() work.
         Non-django class. """
+
+    def make_context( self, request ):
+        """ Prepares data.
+            Called by views.tasks() """
+        log.info( 'starting tasks' )
+        d = {
+                'process_file_from_rapid_url': reverse('process_file_from_rapid_url'),
+                'history': [
+                    { 'date': 'the date', 'user': 'the user A', 'task': 'the task', 'status': 'the status' },
+                    { 'date': 'the older date', 'user': 'the user B', 'task': 'the task', 'status': 'the status' },
+                    ]
+                }
+        return d
+
+    def make_response( self, request, data ):
+        """ Prepares response.
+            Called by views.tasks() """
+        if request.GET.get( 'format' ) == 'json':
+            output = json.dumps( data, sort_keys=True, indent=2 )
+            resp = HttpResponse( output, content_type=u'application/javascript; charset=utf-8' )
+        else:
+            resp = render( request, 'rapid_app_templates/tasks.html', data )
+        return resp
+
+    # end class TasksHelper
+
+
+class ProcessFileFromRapidHelper( object ):
+    """ Manages views.process_file_from_rapid() work. """
 
     def initiate_work( self, request ):
         """ Initiates work.
@@ -92,34 +121,23 @@ class ProcessFileFromRapidHelper( object ):
     # end class ProcessFileFromRapidHelper
 
 
-class TasksHelper( object ):
-    """ Manages view.tasks() work.
-        Non-django class. """
+class UpdateTitlesHelper( object ):
+    """ Manages views.update_production_easyA_titles() work. """
 
-    def make_context( self, request ):
-        """ Prepares data.
-            Called by views.tasks() """
-        log.info( 'starting tasks' )
-        d = {
-                'process_file_from_rapid_url': reverse('process_file_from_rapid_url'),
-                'history': [
-                    { 'date': 'the date', 'user': 'the user A', 'task': 'the task', 'status': 'the status' },
-                    { 'date': 'the older date', 'user': 'the user B', 'task': 'the task', 'status': 'the status' },
-                    ]
-                }
-        return d
+    def run_update( self, request ):
+        """ Calls the backup and update code.
+            Called by views.update_production_easyA_titles() """
+        db_handler = ManualDbHandler( settings_app.DB_CONNECTION_URL )
+        date_timestamp = datetime.datetime.now().strftime( '%Y%m%d_%H%M%S_%f' )  # datetime.datetime(2015, 12, 23, 15, 0, 59, 763188) -> '20151223_150059_763188'
+        backup_table_name = '%s_backup_%s' % ( settings_app.DB_TITLES_TABLE, date_timestamp )
+        backup_create_sql = db_handler.backup_create_sql_pattern.replace( 'BACKUP_TABLE_NAME', backup_table_name )
+        backup_insert_sql = db_handler.backup_insert_sql_pattern.replace( 'BACKUP_TABLE_NAME', backup_table_name ).replace( 'SOURCE_TABLE_NAME', settings_app.DB_TITLES_TABLE )
+        db_handler.run_sql( backup_create_sql )
+        db_handler.setup_db_session( settings_app.DB_CONNECTION_URL )  # session created on init, closed after run_sql()
+        db_handler.run_sql( backup_insert_sql )
+        return 'ok'
 
-    def make_response( self, request, data ):
-        """ Prepares response.
-            Called by views.tasks() """
-        if request.GET.get( 'format' ) == 'json':
-            output = json.dumps( data, sort_keys=True, indent=2 )
-            resp = HttpResponse( output, content_type=u'application/javascript; charset=utf-8' )
-        else:
-            resp = render( request, 'rapid_app_templates/tasks.html', data )
-        return resp
-
-    # end class TasksHelper
+    # end class UpdateTitlesHelper
 
 
 #####################
@@ -558,12 +576,27 @@ class ManualDbHandler( object ):
     def __init__( self, CONNECTION_URL ):
         self.connection_url = CONNECTION_URL
         self.db_session = None
-        self._setup_db_session()
+        self.setup_db_session( CONNECTION_URL )
+        self.backup_create_sql_pattern = '''
+            CREATE TABLE `BACKUP_TABLE_NAME` (
+            `key` varchar( 20 ) NOT NULL ,
+            `issn` varchar( 15 ) NOT NULL ,
+            `start` int( 11 )  NOT NULL ,
+            `end` int( 11 )  DEFAULT NULL ,
+            `location` varchar( 25 ) DEFAULT NULL ,
+            `call_number` varchar( 50 ) DEFAULT NULL ,
+            PRIMARY KEY (`key`)
+            );
+            '''
+        self.backup_insert_sql_pattern = '''
+            INSERT INTO `BACKUP_TABLE_NAME`
+            SELECT * FROM `SOURCE_TABLE_NAME`;
+            '''
 
-    def _setup_db_session( self ):
+    def setup_db_session( self, CONNECTION_URL ):
         """ Initializes session.
             Called by TBD """
-        engine = alchemy_create_engine( settings_app.DB_CONNECTION_URL )
+        engine = alchemy_create_engine( CONNECTION_URL )
         Session = alchemy_scoped_session( alchemy_sessionmaker(bind=engine) )
         self.db_session = Session()
 

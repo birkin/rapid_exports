@@ -254,9 +254,8 @@ class RowFixerTest( TestCase ):
     # end class RowFixerTest
 
 
-class ManualDbHandlerTest( TestCase ):
-    """ Tests models.ManualDbHandler
-        Mostly, though, serves as documentation for how to use sqlalchemy to execute basic sql. """
+class SqlAlchemyTest( TestCase ):
+    """ Mostly serves as documentation for how to use sqlalchemy to execute basic sql. """
 
     def setUp( self ):
         """ Makes sure no `dummy_test_table` exists, then creates it. """
@@ -307,19 +306,8 @@ class ManualDbHandlerTest( TestCase ):
             ('the key', 'the issn', 1980, 1982, 'the location', 'the callnumber');
             '''
         result = self.db_session.execute( sql_a )
-        #
-        # resultset_lst = []
-        # for r in result:
-        #     resultset_lst.append( r )
-        # log.debug( 'checking CREATE result, %s' % pprint.pprint(resultset_lst) )
-        #
         result = self.db_session.execute( sql_b )
-        #
         resultset_lst = []
-        for r in result:
-            resultset_lst.append( r )
-        log.debug( 'checking INSERT result, %s' % pprint.pprint(resultset_lst) )
-        #
         return
 
     def _ensure_test_table( self ):
@@ -338,8 +326,10 @@ class ManualDbHandlerTest( TestCase ):
 
     ## actual tests ##
 
-    def test__make_backup( self ):
-        self.assertEqual( 1, 2 )
+    def test__something( self ):
+        """ Without this the setup and teardown real test work won't occur.
+            Can use this to eventually perhaps test the real make_backup() function. """
+        self.assertEqual( 2, 2 )
 
     ## end actual tests ##
 
