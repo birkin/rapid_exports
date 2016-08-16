@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import codecs, csv, datetime, ftplib, itertools, json, logging, operator, os, pprint, shutil, time, zipfile
 import MySQLdb  # really pymysql; see config/__init__.py
-import paramiko
+# import paramiko
 import requests
 from django.conf import settings as project_settings
 from django.core.urlresolvers import reverse
@@ -161,8 +161,9 @@ class RapidFileGrabber( object ):
     """ Transfers Rapid's prepared file from remote to local location.
         Not-django class. """
 
-    def __init__( self, remote_server_name, remote_server_username, remote_server_password, remote_filepath, local_destination_filepath, local_destination_extract_directory ):
+    def __init__( self, remote_server_name, remote_server_port, remote_server_username, remote_server_password, remote_filepath, local_destination_filepath, local_destination_extract_directory ):
         self.remote_server_name = remote_server_name
+        self.remote_server_port = remote_server_port
         self.remote_server_username = remote_server_username
         self.remote_server_password = remote_server_password
         self.remote_filepath = remote_filepath
@@ -173,15 +174,30 @@ class RapidFileGrabber( object ):
         """ Grabs file.
             Called by ProcessFileFromRapidHelper.initiate_work(). """
         log.debug( 'grab_file() remote_server_name, `%s`; remote_filepath, `%s`; local_destination_filepath, `%s`' % (self.remote_server_name, self.remote_filepath, self.local_destination_filepath) )
-        ( sftp, transport ) = ( None, None )
-        try:
-            transport = paramiko.Transport( (self.remote_server_name, 22) )
-            transport.connect( username=self.remote_server_username, password=self.remote_server_password )
-            sftp = paramiko.SFTPClient.from_transport( transport )
-            sftp.get( self.remote_filepath, self.local_destination_filepath )
-        except Exception as e:
-            log.error( 'exception, `%s`' % unicode(repr(e)) ); raise Exception( unicode(repr(e)) )
+        client = ftplib.FTP_TLS( timeout=10 )
+        client.connect( self.remote_server_name, self.remote_server_port )
+        client.auth()
+        client.prot_p()
+        client.login( self.remote_server_username, self.remote_server_password )
+        f = open( self.local_destination_filepath, 'wb' )
+        client.retrbinary( "RETR " + self.remote_filepath, f.write )
+        f.close()
+        client.quit()
         return
+
+    # def grab_file( self ):
+    #     """ Grabs file.
+    #         Called by ProcessFileFromRapidHelper.initiate_work(). """
+    #     log.debug( 'grab_file() remote_server_name, `%s`; remote_filepath, `%s`; local_destination_filepath, `%s`' % (self.remote_server_name, self.remote_filepath, self.local_destination_filepath) )
+    #     ( sftp, transport ) = ( None, None )
+    #     try:
+    #         transport = paramiko.Transport( (self.remote_server_name, 22) )
+    #         transport.connect( username=self.remote_server_username, password=self.remote_server_password )
+    #         sftp = paramiko.SFTPClient.from_transport( transport )
+    #         sftp.get( self.remote_filepath, self.local_destination_filepath )
+    #     except Exception as e:
+    #         log.error( 'exception, `%s`' % unicode(repr(e)) ); raise Exception( unicode(repr(e)) )
+    #     return
 
     def unzip_file( self ):
         """ Unzips file.
