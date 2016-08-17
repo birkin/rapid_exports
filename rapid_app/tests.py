@@ -346,7 +346,7 @@ class SqlAlchemyTest( TestCase ):
             self.db_session.close()
         return
 
-    # end class ManualDbHandlerTest
+    # end class SqlAlchemyTest
 
 
 ## end ##

@@ -79,20 +79,9 @@ class TasksHelper( object ):
     # end class TasksHelper
 
 
-class ProcessFileFromRapidHelper( object ):
-    """ Manages views.process_file_from_rapid() work. """
-
-    def initiate_work( self, request ):
-        """ Initiates work.
-            Called by views.process_file_from_rapid() """
-        # log.debug( 'starting processing' )
-        grabber = self._setup_grabber()
-        processor = RapidFileProcessor(
-            settings_app.FROM_RAPID_FILEPATH, settings_app.FROM_RAPID_UTF8_FILEPATH )
-        grabber.grab_file()
-        grabber.unzip_file()
-        data_lst = processor.parse_file_from_rapid()
-        return data_lst
+class GrabFileFromRapid( object ):
+    """ Manages views.grab_file_from_rapid() work.
+        TODO; view not yet implemented. """
 
     def _setup_grabber( self ):
         """ Initializes grabber.
@@ -107,6 +96,21 @@ class ProcessFileFromRapidHelper( object ):
             )
         return grabber
 
+    # end class GrabFileFromRapid
+
+
+class ProcessFileFromRapidHelper( object ):
+    """ Manages views.process_file_from_rapid() work. """
+
+    def initiate_work( self, request ):
+        """ Initiates work.
+            Called by views.process_file_from_rapid() """
+        log.debug( 'source-path, ```{source}```; utf8-destination-path, ```{destination}```'.format(source=settings_app.FROM_RAPID_FILEPATH, destination=settings_app.FROM_RAPID_UTF8_FILEPATH) )
+        processor = RapidFileProcessor(
+            settings_app.FROM_RAPID_FILEPATH, settings_app.FROM_RAPID_UTF8_FILEPATH )
+        data_lst = processor.parse_file_from_rapid()
+        return data_lst
+
     def make_response( self, request, data ):
         """ Prepares response.
             Called by views.process_file_from_rapid() """
@@ -119,6 +123,48 @@ class ProcessFileFromRapidHelper( object ):
         return resp
 
     # end class ProcessFileFromRapidHelper
+
+
+# class ProcessFileFromRapidHelper( object ):
+#     """ Manages views.process_file_from_rapid() work. """
+
+#     def initiate_work( self, request ):
+#         """ Initiates work.
+#             Called by views.process_file_from_rapid() """
+#         # log.debug( 'starting processing' )
+#         grabber = self._setup_grabber()
+#         processor = RapidFileProcessor(
+#             settings_app.FROM_RAPID_FILEPATH, settings_app.FROM_RAPID_UTF8_FILEPATH )
+#         grabber.grab_file()
+#         grabber.unzip_file()
+#         data_lst = processor.parse_file_from_rapid()
+#         return data_lst
+
+#     def _setup_grabber( self ):
+#         """ Initializes grabber.
+#             Called by initiate_work() """
+#         grabber = RapidFileGrabber(
+#             settings_app.REMOTE_SERVER_NAME,
+#             settings_app.REMOTE_SERVER_USERNAME,
+#             settings_app.REMOTE_SERVER_PASSWORD,
+#             settings_app.REMOTE_FILEPATH,
+#             settings_app.LOCAL_DESTINATION_FILEPATH,
+#             settings_app.ZIPFILE_EXTRACT_DIR_PATH,
+#             )
+#         return grabber
+
+#     def make_response( self, request, data ):
+#         """ Prepares response.
+#             Called by views.process_file_from_rapid() """
+#         if request.GET.get( 'format' ) == 'json':
+#             output = json.dumps( data, sort_keys=True, indent=2 )
+#             resp = HttpResponse( output, content_type=u'application/javascript; charset=utf-8' )
+#         else:
+#             # resp = HttpResponseRedirect( reverse('tasks_url') )
+#             resp = HttpResponseRedirect( '/rapid_manager/admin/rapid_app/printtitledev/' )
+#         return resp
+
+#     # end class ProcessFileFromRapidHelper
 
 
 class UpdateTitlesHelper( object ):
@@ -235,6 +281,7 @@ class Utf8Maker( object ):
                 utf8 = True
             except Exception as e:
                 log.error( 'EXPECTED exception, `%s`' % unicode(repr(e)) )
+        log.debug( 'utf8 check, `{}`'.format(utf8) )
         return utf8
 
     def make_utf8( self ):
@@ -263,6 +310,12 @@ class Utf8Maker( object ):
                 raise Exception( unicode(repr(e)) )
         return
 
+    def copy_utf8( self ):
+        """ Copies good utf8 source file to utf8-filepath.
+            Called by parse_file_from_rapid() """
+        shutil.copy2( self.from_rapid_filepath, self.from_rapid_utf8_filepath )
+        return
+
     # end class Utf8Maker
 
 
@@ -272,17 +325,34 @@ class RapidFileProcessor( object ):
 
     def __init__(self, from_rapid_filepath, from_rapid_utf8_filepath ):
         # self.from_rapid_filepath = from_rapid_filepath  # actual initial file from rapid
+        log.debug( 'initialized source-path, ```{source}```; destination-utf8-path, ```{destination}```'.format(source=from_rapid_filepath, destination=from_rapid_utf8_filepath) )
         self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
         self.holdings_defs_dct = {
             'key': 0, 'issn': 1, 'location': 2, 'building': 3, 'callnumber': 4, 'year_start': 5, 'year_end': 6 }
         self.utf8_maker = Utf8Maker( from_rapid_filepath, from_rapid_utf8_filepath )
 
+    # def parse_file_from_rapid( self ):
+    #     """ Extracts print holdings from the file-from-rapid.
+    #         That file contains both print and online holdings.
+    #         Called by ProcessFileFromRapidHelper.initiate_work() """
+    #     log.debug( 'starting parse' )
+    #     if self.utf8_maker.check_utf8() is False:
+    #         self.utf8_maker.make_utf8()
+    #     holdings_dct_builder = HoldingsDctBuilder( self.from_rapid_utf8_filepath )
+    #     holdings_dct = holdings_dct_builder.build_holdings_dct()
+    #     holdings_lst = self.build_holdings_lst( holdings_dct )
+    #     self.update_dev_db( holdings_lst )
+    #     return holdings_lst
+
     def parse_file_from_rapid( self ):
         """ Extracts print holdings from the file-from-rapid.
             That file contains both print and online holdings.
             Called by ProcessFileFromRapidHelper.initiate_work() """
+        log.debug( 'starting parse' )
         if self.utf8_maker.check_utf8() is False:
             self.utf8_maker.make_utf8()
+        else:
+            self.utf8_maker.copy_utf8()
         holdings_dct_builder = HoldingsDctBuilder( self.from_rapid_utf8_filepath )
         holdings_dct = holdings_dct_builder.build_holdings_dct()
         holdings_lst = self.build_holdings_lst( holdings_dct )
@@ -451,6 +521,7 @@ class HoldingsDctBuilder( object ):
     def prep_holdings_dct_processing( self ):
         """ Sets initial vars.
             Called by build_holdings_dct() """
+        log.debug( 'using utf8-filepath, ```{}```'.format(self.from_rapid_utf8_filepath) )
         holdings_dct = {}
         tmp_csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
         entries_count = sum( 1 for row in tmp_csv_ref )  # runs through file, so have to open again

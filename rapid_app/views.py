@@ -24,6 +24,7 @@ def tasks( request ):
 def process_file_from_rapid( request ):
     """ Grabs and processes rapid extract file.
         When done, shows titles admin. """
+    log.debug( 'starting processing' )
     data = process_file_from_rapid_hlper.initiate_work( request )
     response = process_file_from_rapid_hlper.make_response( request, data )
     log.debug( 'response, ```%s```' % response )
