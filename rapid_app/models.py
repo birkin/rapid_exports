@@ -36,7 +36,7 @@ class PrintTitleDev( models.Model ):
     location = models.CharField( 'other--location', max_length=25, blank=True, null=True )
     building = models.CharField( max_length=25, blank=True, null=True )
     call_number = models.CharField( max_length=50, blank=True, null=True )
-    date_updated = models.DateField( 'other--date-updated', auto_now=True )
+    date_updated = models.DateTimeField( 'other--date-updated', auto_now=True )
 
     def __unicode__(self):
         return '%s__%s_to_%s' % ( self.issn, self.start, self.end )
