@@ -698,14 +698,14 @@ class ManualDbHandler( object ):
 
     def setup_db_session( self, CONNECTION_URL ):
         """ Initializes session.
-            Called by TBD """
+            Called by __init__() and UpdateTitlesHelper._make_backup_table() """
         engine = alchemy_create_engine( CONNECTION_URL )
         Session = alchemy_scoped_session( alchemy_sessionmaker(bind=engine) )
         self.db_session = Session()
 
     def run_sql( self, sql ):
         """ Executes sql; returns a list (ok, an iterable) of tuple-rows on SELECT.
-            Called by TBD """
+            Called by UpdateTitlesHelper._make_backup_table() """
         log.debug( 'sql, ```%s```' % sql )
         try:
             possible_resultset = self.db_session.execute( sql )
@@ -719,14 +719,15 @@ class ManualDbHandler( object ):
 
     def _make_resultset_lst( self, possible_resultset ):
         """ Returns list of tuple-rows if available.
-            Called by: TBD """
+            Called by: run_sql() """
+        log.debug( 'checking for any resultset...' )
         possible_resultset_lst = None
         try:
             for tuple_row in possible_resultset:
                 possible_resultset_lst.append( tuple_row )
+        log.debug( 'resultset found' )
         except Exception as e:
-            log.warning( 'exception on processing resultset, ```{}```'.format(unicode(repr(e))) )
-            log.debug( 'no data returned' )
+            log.info( 'no resultset found; message, ```{}```'.format(unicode(repr(e))) )
         return possible_resultset_lst
 
     # end class ManualDbHandler
