@@ -17,6 +17,17 @@ Rapid Manager - tasks
     p {
         font-size: 125%;
         margin-top:1.5em; }
+    ul {
+        display: block;
+        list-style-type: disc;
+        margin-top: 1em;
+        margin-bottom: 1 em;
+        margin-left: 0;
+        margin-right: 0;
+        padding-left: 40px;
+    }
+    li {
+        display: list-item; }
 </style>
 
 <h1 id="tasks">tasks </h1>
@@ -27,10 +38,14 @@ Rapid Manager - tasks
 
 <p id="process_file_from_rapid">
     <a href={{ process_file_from_rapid_url }}>Process File From Rapid</a>
+    <ul>
+        <li>Takes 15-20 minutes.</li>
+        <li>You can close browser window and processing will continue just fine.</li>
+    </ul>
 </p>
 
 <p id="check_new_data">
-    Check new data -- clickable link coming
+    <a href="{{ check_data_url }}">Check new data</a>
 </p>
 
 <p id="update_issn_table">

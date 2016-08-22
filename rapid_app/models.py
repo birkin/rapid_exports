@@ -58,12 +58,16 @@ class TasksHelper( object ):
             Called by views.tasks() """
         log.info( 'starting tasks' )
         d = {
-                'process_file_from_rapid_url': reverse('process_file_from_rapid_url'),
-                'history': [
-                    { 'date': 'the date', 'user': 'the user A', 'task': 'the task', 'status': 'the status' },
-                    { 'date': 'the older date', 'user': 'the user B', 'task': 'the task', 'status': 'the status' },
-                    ]
-                }
+            'process_file_from_rapid_url': reverse('process_file_from_rapid_url'),
+            'check_data_url': reverse('admin:rapid_app_printtitledev_changelist'),
+            }
+        # d = {
+        #         'process_file_from_rapid_url': reverse('process_file_from_rapid_url'),
+        #         'history': [
+        #             { 'date': 'the date', 'user': 'the user A', 'task': 'the task', 'status': 'the status' },
+        #             { 'date': 'the older date', 'user': 'the user B', 'task': 'the task', 'status': 'the status' },
+        #             ]
+        #         }
         return d
 
     def make_response( self, request, data ):
