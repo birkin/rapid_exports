@@ -37,8 +37,9 @@ Rapid Manager - tasks
     Update ISSN table -- clickable link coming
 </p>
 
-<h1 id="history">history</h1>
 
+{% comment %}
+<h1 id="history">history</h1>
 
 {% for record in history %}
 <div class="record">
@@ -48,6 +49,7 @@ Rapid Manager - tasks
     <li>status: {{ record.status }}</li>
 </div>
 {% endfor %}
+{% endcomment %}
 
 
 <hr/>
