@@ -692,8 +692,8 @@ class ManualDbHandler( object ):
             );
             '''
         self.backup_insert_sql_pattern = '''
-            INSERT INTO `BACKUP_TABLE_NAME`
-            SELECT * FROM `SOURCE_TABLE_NAME`;
+            INSERT INTO `BACKUP_TABLE_NAME` (key, issn, start, end, location, call_number)
+            SELECT key, issn, start, end, location, call_number FROM `SOURCE_TABLE_NAME`;
             '''
 
     def setup_db_session( self, CONNECTION_URL ):
@@ -706,6 +706,7 @@ class ManualDbHandler( object ):
     def run_sql( self, sql ):
         """ Executes sql; returns a list (ok, an iterable) of tuple-rows on SELECT.
             Called by UpdateTitlesHelper._make_backup_table() """
+        time.sleep( 1 )
         log.debug( 'sql, ```%s```' % sql )
         try:
             possible_resultset = self.db_session.execute( sql )
