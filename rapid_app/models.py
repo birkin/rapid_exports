@@ -714,17 +714,18 @@ class ManualDbHandler( object ):
             self.db_session.close()
             raise Exception( unicode(repr(e)) )
         possible_resultset_lst = self._make_resultset_lst( possible_resultset )
-        db_session.close()
+        self.db_session.close()
         return possible_resultset_lst
 
-    def _make_resultset_lst( possible_resultset ):
+    def _make_resultset_lst( self, possible_resultset ):
         """ Returns list of tuple-rows if available.
             Called by: TBD """
         possible_resultset_lst = None
         try:
             for tuple_row in possible_resultset:
                 possible_resultset_lst.append( tuple_row )
-        except ResourceClosedError:
+        except Exception as e:
+            log.warning( 'exception on processing resultset, ```{}```'.format(unicode(repr(e))) )
             log.debug( 'no data returned' )
         return possible_resultset_lst
 

@@ -7,12 +7,13 @@ from django.contrib.auth import logout
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
-from rapid_app.models import ProcessFileFromRapidHelper, TasksHelper
+from rapid_app.models import ProcessFileFromRapidHelper, TasksHelper, UpdateTitlesHelper
 
 
 log = logging.getLogger(__name__)
 tasks_hlpr = TasksHelper()
 process_file_from_rapid_hlper = ProcessFileFromRapidHelper()
+update_titles_hlpr = UpdateTitlesHelper()
 
 
 def tasks( request ):
@@ -33,8 +34,7 @@ def process_file_from_rapid( request ):
 def update_titles( request ):
     """ Backs up and updates easyAccess print-titles table. """
     data = update_titles_hlpr.run_update( request )
-    response = update_titles_hlpr.make_response( request, data )
-    return response
+    return HttpResponseRedirect( reverse('tasks_url') )
 
 def hi( request ):
     """ Returns simplest response. """
