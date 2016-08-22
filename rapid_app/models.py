@@ -725,7 +725,7 @@ class ManualDbHandler( object ):
         try:
             for tuple_row in possible_resultset:
                 possible_resultset_lst.append( tuple_row )
-        log.debug( 'resultset found' )
+            log.debug( 'resultset found' )
         except Exception as e:
             log.info( 'no resultset found; message, ```{}```'.format(unicode(repr(e))) )
         return possible_resultset_lst
