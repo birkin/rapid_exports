@@ -15,7 +15,6 @@ from django.utils.encoding import smart_unicode
 from django.utils.text import slugify
 from rapid_app import settings_app
 from sqlalchemy import create_engine as alchemy_create_engine
-from sqlalchemy.orm import sessionmaker as alchemy_sessionmaker, scoped_session as alchemy_scoped_session
 
 
 log = logging.getLogger(__name__)
@@ -178,20 +177,20 @@ class UpdateTitlesHelper( object ):
         """ Calls the backup and update code.
             Called by views.update_production_easyA_titles() """
         self._make_backup_table()
-        self._update_production_table()
+        # self._update_production_table()
         return 'ok'
 
     def _make_backup_table( self ):
         """ Runs backup sql.
             Called by run_update() """
-        db_handler = ManualDbHandler( settings_app.DB_CONNECTION_URL )
-        date_timestamp = datetime.datetime.now().strftime( '%Y%m%d_%H%M%S_%f' )  # datetime.datetime(2015, 12, 23, 15, 0, 59, 763188) -> '20151223_150059_763188'
-        backup_table_name = '%s_backup_%s' % ( settings_app.DB_TITLES_TABLE, date_timestamp )
-        backup_create_sql = db_handler.backup_create_sql_pattern.replace( 'BACKUP_TABLE_NAME', backup_table_name )
-        backup_insert_sql = db_handler.backup_insert_sql_pattern.replace( 'BACKUP_TABLE_NAME', backup_table_name ).replace( 'SOURCE_TABLE_NAME', settings_app.DB_TITLES_TABLE )
-        db_handler.run_sql( backup_create_sql )
-        db_handler.setup_db_session( settings_app.DB_CONNECTION_URL )  # session created on init, closed after run_sql()
-        db_handler.run_sql( backup_insert_sql )
+        db_handler = ManualDbHandler()
+        ## empty older backup table
+        db_handler.run_sql(
+            sql=unicode(os.environ['RAPID__BACKUP_OLDER_DELETE_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+        db_handler.run_sql(
+            sql='VACUUM;', connection_url=settings_app.DB_CONNECTION_URL  )
+        db_handler.run_sql(
+            sql=unicode(os.environ['RAPID__BACKUP_OLDER_INSERT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
         return 'ok'
 
     def _update_production_table( self ):
@@ -676,59 +675,77 @@ class ManualDbHandler( object ):
     """ Backs-up and writes to non-rapid-manager print-titles table.
         Non-django class. """
 
-    def __init__( self, CONNECTION_URL ):
-        self.connection_url = CONNECTION_URL
-        self.db_session = None
-        self.setup_db_session( CONNECTION_URL )
-        self.backup_create_sql_pattern = '''
-            CREATE TABLE `BACKUP_TABLE_NAME` (
-            `key` varchar( 20 ) NOT NULL ,
-            `issn` varchar( 15 ) NOT NULL ,
-            `start` int( 11 )  NOT NULL ,
-            `end` int( 11 )  DEFAULT NULL ,
-            `location` varchar( 25 ) DEFAULT NULL ,
-            `call_number` varchar( 50 ) DEFAULT NULL ,
-            PRIMARY KEY (`key`)
-            );
-            '''
-        self.backup_insert_sql_pattern = '''
-            INSERT INTO `BACKUP_TABLE_NAME` (key, issn, start, end, location, call_number)
-            SELECT key, issn, start, end, location, call_number FROM `SOURCE_TABLE_NAME`;
-            '''
-
-    def setup_db_session( self, CONNECTION_URL ):
-        """ Initializes session.
-            Called by __init__() and UpdateTitlesHelper._make_backup_table() """
-        engine = alchemy_create_engine( CONNECTION_URL )
-        Session = alchemy_scoped_session( alchemy_sessionmaker(bind=engine) )
-        self.db_session = Session()
-
-    def run_sql( self, sql ):
-        """ Executes sql; returns a list (ok, an iterable) of tuple-rows on SELECT.
+    def run_sql( self, sql, connection_url ):
+        """ Executes sql.
             Called by UpdateTitlesHelper._make_backup_table() """
-        time.sleep( 1 )
+        time.sleep( .5 )
         log.debug( 'sql, ```%s```' % sql )
+        engine = alchemy_create_engine( connection_url )
         try:
-            possible_resultset = self.db_session.execute( sql )
+            result = engine.execute( sql )
+            result.close()
         except Exception as e:
-            log.error( 'error executing sql, ```%s```' % unicode(repr(e)) )
-            self.db_session.close()
-            raise Exception( unicode(repr(e)) )
-        possible_resultset_lst = self._make_resultset_lst( possible_resultset )
-        self.db_session.close()
-        return possible_resultset_lst
-
-    def _make_resultset_lst( self, possible_resultset ):
-        """ Returns list of tuple-rows if available.
-            Called by: run_sql() """
-        log.debug( 'checking for any resultset...' )
-        possible_resultset_lst = None
-        try:
-            for tuple_row in possible_resultset:
-                possible_resultset_lst.append( tuple_row )
-            log.debug( 'resultset found' )
-        except Exception as e:
-            log.info( 'no resultset found; message, ```{}```'.format(unicode(repr(e))) )
-        return possible_resultset_lst
+            log.error( 'exception executing sql, ```{}```'.format(unicode(repr(e))) )
 
     # end class ManualDbHandler
+
+
+# class ManualDbHandler( object ):
+#     """ Backs-up and writes to non-rapid-manager print-titles table.
+#         Non-django class. """
+
+#     def __init__( self, CONNECTION_URL ):
+#         self.connection_url = CONNECTION_URL
+#         self.db_session = None
+#         self.setup_db_session( CONNECTION_URL )
+#         self.backup_create_sql_pattern = '''
+#             CREATE TABLE `BACKUP_TABLE_NAME` (
+#             `key` varchar( 20 ) DEFAULT NULL ,
+#             `issn` varchar( 15 ) DEFAULT NULL ,
+#             `start` int( 11 )  DEFAULT NULL ,
+#             `end` int( 11 )  DEFAULT NULL ,
+#             `location` varchar( 25 ) DEFAULT NULL ,
+#             `call_number` varchar( 50 ) DEFAULT NULL
+#             );
+#             '''
+#         self.backup_insert_sql_pattern = '''
+#             INSERT INTO `BACKUP_TABLE_NAME` (key, issn, start, end, location, call_number)
+#             SELECT key, issn, start, end, location, call_number FROM `SOURCE_TABLE_NAME`;
+#             '''
+
+#     def setup_db_session( self, CONNECTION_URL ):
+#         """ Initializes session.
+#             Called by __init__() and UpdateTitlesHelper._make_backup_table() """
+#         engine = alchemy_create_engine( CONNECTION_URL )
+#         Session = alchemy_scoped_session( alchemy_sessionmaker(bind=engine) )
+#         self.db_session = Session()
+
+#     def run_sql( self, sql ):
+#         """ Executes sql; returns a list (ok, an iterable) of tuple-rows on SELECT.
+#             Called by UpdateTitlesHelper._make_backup_table() """
+#         time.sleep( 1 )
+#         log.debug( 'sql, ```%s```' % sql )
+#         try:
+#             possible_resultset = self.db_session.execute( sql )
+#         except Exception as e:
+#             log.error( 'error executing sql, ```%s```' % unicode(repr(e)) )
+#             self.db_session.close()
+#             raise Exception( unicode(repr(e)) )
+#         possible_resultset_lst = self._make_resultset_lst( possible_resultset )
+#         self.db_session.close()
+#         return possible_resultset_lst
+
+#     def _make_resultset_lst( self, possible_resultset ):
+#         """ Returns list of tuple-rows if available.
+#             Called by: run_sql() """
+#         log.debug( 'checking for any resultset...' )
+#         possible_resultset_lst = None
+#         try:
+#             for tuple_row in possible_resultset:
+#                 possible_resultset_lst.append( tuple_row )
+#             log.debug( 'resultset found' )
+#         except Exception as e:
+#             log.info( 'no resultset found; message, ```{}```'.format(unicode(repr(e))) )
+#         return possible_resultset_lst
+
+#     # end class ManualDbHandler
