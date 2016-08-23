@@ -187,25 +187,31 @@ class UpdateTitlesHelper( object ):
     def update_older_backup( self ):
         """ Copies data from backup table to older backup table.
             Called by run_update() """
-        self.db_handler.run_sql(
-            sql=unicode(os.environ['RAPID__BACKUP_OLDER_DELETE_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
-        if 'sqlite' in settings_app.DB_CONNECTION_URL:
+        result = self.db_handler.run_sql( sql=unicode(os.environ['RAPID__BACKUP_COUNT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+        if result[0][0] > 10000:  # result is like `[(27010,)]`; don't backup if the count is way off
             self.db_handler.run_sql(
-                sql='VACUUM;', connection_url=settings_app.DB_CONNECTION_URL  )
-        self.db_handler.run_sql(
-            sql=unicode(os.environ['RAPID__BACKUP_OLDER_INSERT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+                sql=unicode(os.environ['RAPID__BACKUP_OLDER_DELETE_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+            if 'sqlite' in settings_app.DB_CONNECTION_URL:
+                self.db_handler.run_sql( sql='VACUUM;', connection_url=settings_app.DB_CONNECTION_URL  )
+            self.db_handler.run_sql(
+                sql=unicode(os.environ['RAPID__BACKUP_OLDER_INSERT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+        else:
+            log.info( 'not backing up because count is only, ```{}```'.format(result) )
         return
 
     def update_backup( self ):
         """ Copies data from production table to backup table.
             Called by run_update() """
-        self.db_handler.run_sql(
-            sql=unicode(os.environ['RAPID__BACKUP_DELETE_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
-        if 'sqlite' in settings_app.DB_CONNECTION_URL:
+        result = self.db_handler.run_sql( sql=unicode(os.environ['RAPID__PRODUCTION_COUNT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+        if result[0][0] > 10000:  # result is like `[(27010,)]`; don't backup if the count is way off
             self.db_handler.run_sql(
-                sql='VACUUM;', connection_url=settings_app.DB_CONNECTION_URL  )
-        self.db_handler.run_sql(
-            sql=unicode(os.environ['RAPID__BACKUP_INSERT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+                sql=unicode(os.environ['RAPID__BACKUP_DELETE_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+            if 'sqlite' in settings_app.DB_CONNECTION_URL:
+                self.db_handler.run_sql( sql='VACUUM;', connection_url=settings_app.DB_CONNECTION_URL  )
+            self.db_handler.run_sql(
+                sql=unicode(os.environ['RAPID__BACKUP_INSERT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+        else:
+            log.info( 'not backing up because count is only, ```{}```'.format(result) )
         return
 
     def update_production_table( self ):
@@ -693,12 +699,15 @@ class ManualDbHandler( object ):
     def run_sql( self, sql, connection_url ):
         """ Executes sql.
             Called by UpdateTitlesHelper._make_backup_table() """
-        time.sleep( .5 )
         log.debug( 'sql, ```%s```' % sql )
         engine = alchemy_create_engine( connection_url )
         try:
+            return_val = None
             result = engine.execute( sql )
+            if 'fetchall' in dir( result.cursor ):
+                return_val = result.cursor.fetchall()
             result.close()
+            return return_val
         except Exception as e:
             log.error( 'exception executing sql, ```{}```'.format(unicode(repr(e))) )
 
