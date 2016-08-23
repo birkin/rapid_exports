@@ -173,27 +173,42 @@ class ProcessFileFromRapidHelper( object ):
 class UpdateTitlesHelper( object ):
     """ Manages views.update_production_easyA_titles() work. """
 
+    def __init__(self):
+        self.db_handler = ManualDbHandler()
+
     def run_update( self, request ):
         """ Calls the backup and update code.
             Called by views.update_production_easyA_titles() """
-        self._make_backup_table()
-        # self._update_production_table()
+        self.update_older_backup()
+        self.update_backup()
+        # self.update_production_table()
         return 'ok'
 
-    def _make_backup_table( self ):
-        """ Runs backup sql.
+    def update_older_backup( self ):
+        """ Copies data from backup table to older backup table.
             Called by run_update() """
-        db_handler = ManualDbHandler()
-        ## empty older backup table
-        db_handler.run_sql(
+        self.db_handler.run_sql(
             sql=unicode(os.environ['RAPID__BACKUP_OLDER_DELETE_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
-        db_handler.run_sql(
-            sql='VACUUM;', connection_url=settings_app.DB_CONNECTION_URL  )
-        db_handler.run_sql(
+        if 'sqlite' in settings_app.DB_CONNECTION_URL:
+            self.db_handler.run_sql(
+                sql='VACUUM;', connection_url=settings_app.DB_CONNECTION_URL  )
+        self.db_handler.run_sql(
             sql=unicode(os.environ['RAPID__BACKUP_OLDER_INSERT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
-        return 'ok'
+        return
 
-    def _update_production_table( self ):
+    def update_backup( self ):
+        """ Copies data from production table to backup table.
+            Called by run_update() """
+        self.db_handler.run_sql(
+            sql=unicode(os.environ['RAPID__BACKUP_DELETE_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+        if 'sqlite' in settings_app.DB_CONNECTION_URL:
+            self.db_handler.run_sql(
+                sql='VACUUM;', connection_url=settings_app.DB_CONNECTION_URL  )
+        self.db_handler.run_sql(
+            sql=unicode(os.environ['RAPID__BACKUP_INSERT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+        return
+
+    def update_production_table( self ):
         """ Runs update-production sql.
             Called by run_update() """
         return 'foo'
