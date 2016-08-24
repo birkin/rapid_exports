@@ -196,7 +196,7 @@ class UpdateTitlesHelper( object ):
             'key': 0, 'issn': 1, 'start': 2, 'end': 3, 'location': 4, 'call_number': 5 }
         for tuple_entry in result:
             match = PrintTitleDev.objects.filter(
-                key=tuple_entry['key'], issn=tuple_entry['issn'], start=int(tuple_entry['start']), end=int(tuple_entry['end']), building=tuple_entry['location', call_number=tuple_entry['call_number'] )
+                key=tuple_entry['key'], issn=tuple_entry['issn'], start=int(tuple_entry['start']), end=int(tuple_entry['end']), building=tuple_entry['location'], call_number=tuple_entry['call_number'] )
             if match == []:
                 sql = '''
                     DELETE * FROM `{destination_table}`
