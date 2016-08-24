@@ -174,24 +174,23 @@ class UpdateTitlesHelper( object ):
         for entry in titles:
             sql = '''
                 SELECT * FROM `{destination_table}`
-                WHERE `key` = {key}
-                AND `issn` = {issn}
+                WHERE `key` = '{key}'
+                AND `issn` = '{issn}'
                 AND `start` = {start}
                 AND `end` = {end}
-                AND `location` = {location}
-                AND `call_number` = {call_number};
+                AND `location` = '{location}'
+                AND `call_number` = '{call_number}';
                 '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
-            result = self.db_handler.run_sql( sql=unicode(os.environ['RAPID__PRODUCTION_COUNT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
-            log.debug( 'count, `{}`'.format(result[0][0]) )
+            result = self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
             if result == None:
                 sql = '''
                 INSERT INTO `{destination_table}` ( `key`, `issn`, `start`, `end`, `location`, `call_number` )
                 VALUES ( '{key}', '{issn}', '{start}', '{end}', '{location}', '{call_number}' );
                 '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
-                self.db_handler.run_sql( sql=unicode(os.environ['RAPID__PRODUCTION_COUNT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+                self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
         ## iterate through destination-set deleting records if they're not in the source
-        sql = ''''SELECT * FROM `{}`;'''.format( unicode(os.environ['RAPID__TITLES_TABLE_NAME']) )
-        result = self.db_handler.run_sql( sql=unicode(os.environ['RAPID__PRODUCTION_COUNT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+        sql = '''SELECT * FROM `{}`;'''.format( unicode(os.environ['RAPID__TITLES_TABLE_NAME']) )
+        result = self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
         tuple_keys = {
             'key': 0, 'issn': 1, 'start': 2, 'end': 3, 'location': 4, 'call_number': 5 }
         for tuple_entry in result:
@@ -200,12 +199,12 @@ class UpdateTitlesHelper( object ):
             if match == []:
                 sql = '''
                     DELETE * FROM `{destination_table}`
-                    WHERE `key` = {key}
-                    AND `issn` = {issn}
+                    WHERE `key` = '{key}'
+                    AND `issn` = '{issn}'
                     AND `start` = {start}
                     AND `end` = {end}
-                    AND `location` = {location}
-                    AND `call_number` = {call_number}
+                    AND `location` = '{location}'
+                    AND `call_number` = '{call_number}'
                     LIMIT 1;
                     '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
         return
