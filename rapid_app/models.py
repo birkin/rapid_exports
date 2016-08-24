@@ -131,7 +131,7 @@ class UpdateTitlesHelper( object ):
             Called by views.update_production_easyA_titles() """
         self.update_older_backup()
         self.update_backup()
-        # self.update_production_table()
+        self.update_production_table()
         return 'ok'
 
     def update_older_backup( self ):
@@ -180,23 +180,23 @@ class UpdateTitlesHelper( object ):
                 AND `end` = {end}
                 AND `location` = {location}
                 AND `call_number` = {call_number};
-                '''.format( destination_table=unicode(os.environ[RAPID__EASYA_TABLE]), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
+                '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
             result = self.db_handler.run_sql( sql=unicode(os.environ['RAPID__PRODUCTION_COUNT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
             log.debug( 'count, `{}`'.format(result[0][0]) )
             if result == None:
                 sql = '''
                 INSERT INTO `{destination_table}` ( `key`, `issn`, `start`, `end`, `location`, `call_number` )
                 VALUES ( '{key}', '{issn}', '{start}', '{end}', '{location}', '{call_number}' );
-                '''.format( destination_table=unicode(os.environ[RAPID__EASYA_TABLE]), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
+                '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
                 self.db_handler.run_sql( sql=unicode(os.environ['RAPID__PRODUCTION_COUNT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
         ## iterate through destination-set deleting records if they're not in the source
-        sql = ''''SELECT * FROM `{}`;'''.format( unicode(os.environ[RAPID__EASYA_TABLE]) )
+        sql = ''''SELECT * FROM `{}`;'''.format( unicode(os.environ['RAPID__TITLES_TABLE_NAME']) )
         result = self.db_handler.run_sql( sql=unicode(os.environ['RAPID__PRODUCTION_COUNT_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
         tuple_keys = {
             'key': 0, 'issn': 1, 'start': 2, 'end': 3, 'location': 4, 'call_number': 5 }
         for tuple_entry in result:
             match = PrintTitleDev.objects.filter(
-                key=tuple_entry['key'], issn=tuple_entry['issn'], start=int(tuple_entry['start']), end=int(tuple_entry['end']), building=tuple_entry['location'], call_number=tuple_entry['call_number'] )
+                key=tuple_keys['key'], issn=tuple_keys['issn'], start=int(tuple_keys['start']), end=int(tuple_keys['end']), building=tuple_keys['location'], call_number=tuple_keys['call_number'] )
             if match == []:
                 sql = '''
                     DELETE * FROM `{destination_table}`
@@ -207,7 +207,7 @@ class UpdateTitlesHelper( object ):
                     AND `location` = {location}
                     AND `call_number` = {call_number}
                     LIMIT 1;
-                    '''.format( destination_table=unicode(os.environ[RAPID__EASYA_TABLE]), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
+                    '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
         return
 
     # end class UpdateTitlesHelper
