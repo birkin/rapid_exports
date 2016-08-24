@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 import codecs, csv, datetime, ftplib, itertools, json, logging, operator, os, pprint, shutil, time, zipfile
 import MySQLdb  # really pymysql; see config/__init__.py
-# import paramiko
 import requests
 from django.conf import settings as project_settings
 from django.core.urlresolvers import reverse
@@ -60,13 +59,6 @@ class TasksHelper( object ):
             'process_file_from_rapid_url': reverse('process_file_from_rapid_url'),
             'check_data_url': reverse('admin:rapid_app_printtitledev_changelist'),
             }
-        # d = {
-        #         'process_file_from_rapid_url': reverse('process_file_from_rapid_url'),
-        #         'history': [
-        #             { 'date': 'the date', 'user': 'the user A', 'task': 'the task', 'status': 'the status' },
-        #             { 'date': 'the older date', 'user': 'the user B', 'task': 'the task', 'status': 'the status' },
-        #             ]
-        #         }
         return d
 
     def make_response( self, request, data ):
@@ -126,48 +118,6 @@ class ProcessFileFromRapidHelper( object ):
         return resp
 
     # end class ProcessFileFromRapidHelper
-
-
-# class ProcessFileFromRapidHelper( object ):
-#     """ Manages views.process_file_from_rapid() work. """
-
-#     def initiate_work( self, request ):
-#         """ Initiates work.
-#             Called by views.process_file_from_rapid() """
-#         # log.debug( 'starting processing' )
-#         grabber = self._setup_grabber()
-#         processor = RapidFileProcessor(
-#             settings_app.FROM_RAPID_FILEPATH, settings_app.FROM_RAPID_UTF8_FILEPATH )
-#         grabber.grab_file()
-#         grabber.unzip_file()
-#         data_lst = processor.parse_file_from_rapid()
-#         return data_lst
-
-#     def _setup_grabber( self ):
-#         """ Initializes grabber.
-#             Called by initiate_work() """
-#         grabber = RapidFileGrabber(
-#             settings_app.REMOTE_SERVER_NAME,
-#             settings_app.REMOTE_SERVER_USERNAME,
-#             settings_app.REMOTE_SERVER_PASSWORD,
-#             settings_app.REMOTE_FILEPATH,
-#             settings_app.LOCAL_DESTINATION_FILEPATH,
-#             settings_app.ZIPFILE_EXTRACT_DIR_PATH,
-#             )
-#         return grabber
-
-#     def make_response( self, request, data ):
-#         """ Prepares response.
-#             Called by views.process_file_from_rapid() """
-#         if request.GET.get( 'format' ) == 'json':
-#             output = json.dumps( data, sort_keys=True, indent=2 )
-#             resp = HttpResponse( output, content_type=u'application/javascript; charset=utf-8' )
-#         else:
-#             # resp = HttpResponseRedirect( reverse('tasks_url') )
-#             resp = HttpResponseRedirect( '/rapid_manager/admin/rapid_app/printtitledev/' )
-#         return resp
-
-#     # end class ProcessFileFromRapidHelper
 
 
 class UpdateTitlesHelper( object ):
@@ -354,19 +304,6 @@ class RapidFileProcessor( object ):
         self.holdings_defs_dct = {
             'key': 0, 'issn': 1, 'location': 2, 'building': 3, 'callnumber': 4, 'year_start': 5, 'year_end': 6 }
         self.utf8_maker = Utf8Maker( from_rapid_filepath, from_rapid_utf8_filepath )
-
-    # def parse_file_from_rapid( self ):
-    #     """ Extracts print holdings from the file-from-rapid.
-    #         That file contains both print and online holdings.
-    #         Called by ProcessFileFromRapidHelper.initiate_work() """
-    #     log.debug( 'starting parse' )
-    #     if self.utf8_maker.check_utf8() is False:
-    #         self.utf8_maker.make_utf8()
-    #     holdings_dct_builder = HoldingsDctBuilder( self.from_rapid_utf8_filepath )
-    #     holdings_dct = holdings_dct_builder.build_holdings_dct()
-    #     holdings_lst = self.build_holdings_lst( holdings_dct )
-    #     self.update_dev_db( holdings_lst )
-    #     return holdings_lst
 
     def parse_file_from_rapid( self ):
         """ Extracts print holdings from the file-from-rapid.
@@ -712,64 +649,3 @@ class ManualDbHandler( object ):
             log.error( 'exception executing sql, ```{}```'.format(unicode(repr(e))) )
 
     # end class ManualDbHandler
-
-
-# class ManualDbHandler( object ):
-#     """ Backs-up and writes to non-rapid-manager print-titles table.
-#         Non-django class. """
-
-#     def __init__( self, CONNECTION_URL ):
-#         self.connection_url = CONNECTION_URL
-#         self.db_session = None
-#         self.setup_db_session( CONNECTION_URL )
-#         self.backup_create_sql_pattern = '''
-#             CREATE TABLE `BACKUP_TABLE_NAME` (
-#             `key` varchar( 20 ) DEFAULT NULL ,
-#             `issn` varchar( 15 ) DEFAULT NULL ,
-#             `start` int( 11 )  DEFAULT NULL ,
-#             `end` int( 11 )  DEFAULT NULL ,
-#             `location` varchar( 25 ) DEFAULT NULL ,
-#             `call_number` varchar( 50 ) DEFAULT NULL
-#             );
-#             '''
-#         self.backup_insert_sql_pattern = '''
-#             INSERT INTO `BACKUP_TABLE_NAME` (key, issn, start, end, location, call_number)
-#             SELECT key, issn, start, end, location, call_number FROM `SOURCE_TABLE_NAME`;
-#             '''
-
-#     def setup_db_session( self, CONNECTION_URL ):
-#         """ Initializes session.
-#             Called by __init__() and UpdateTitlesHelper._make_backup_table() """
-#         engine = alchemy_create_engine( CONNECTION_URL )
-#         Session = alchemy_scoped_session( alchemy_sessionmaker(bind=engine) )
-#         self.db_session = Session()
-
-#     def run_sql( self, sql ):
-#         """ Executes sql; returns a list (ok, an iterable) of tuple-rows on SELECT.
-#             Called by UpdateTitlesHelper._make_backup_table() """
-#         time.sleep( 1 )
-#         log.debug( 'sql, ```%s```' % sql )
-#         try:
-#             possible_resultset = self.db_session.execute( sql )
-#         except Exception as e:
-#             log.error( 'error executing sql, ```%s```' % unicode(repr(e)) )
-#             self.db_session.close()
-#             raise Exception( unicode(repr(e)) )
-#         possible_resultset_lst = self._make_resultset_lst( possible_resultset )
-#         self.db_session.close()
-#         return possible_resultset_lst
-
-#     def _make_resultset_lst( self, possible_resultset ):
-#         """ Returns list of tuple-rows if available.
-#             Called by: run_sql() """
-#         log.debug( 'checking for any resultset...' )
-#         possible_resultset_lst = None
-#         try:
-#             for tuple_row in possible_resultset:
-#                 possible_resultset_lst.append( tuple_row )
-#             log.debug( 'resultset found' )
-#         except Exception as e:
-#             log.info( 'no resultset found; message, ```{}```'.format(unicode(repr(e))) )
-#         return possible_resultset_lst
-
-#     # end class ManualDbHandler
