@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-import codecs, csv, datetime, ftplib, itertools, json, logging, operator, os, pprint, shutil, time, zipfile
+import codecs, csv, datetime, ftplib, itertools, json, logging, operator, os, pprint, sets, shutil, time, zipfile
 import MySQLdb  # really pymysql; see config/__init__.py
 import requests
 from django.conf import settings as project_settings
@@ -167,20 +167,41 @@ class UpdateTitlesHelper( object ):
     def update_production_table( self ):
         """ Runs update-production sql.
             Steps:
-            - clear easyA temp table
-            - update easyA temp table
-            - if temp table is populated, clear production easyA table
-            - populate easyA production table from temp table
-            To explore: another elegant way to do this would be to query both tables, do a set intersection, and then do the appropriate small loop of additions and deletes.
+            - get list of keys from rapid table
+            - get list of keys from production easyA table
+            - run a set intersection
+            - add keys to, and delete keys from easyA table
             Called by run_update() """
-        self.db_handler.run_sql( sql=unicode(os.environ['RAPID__DELETE_TEMP_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
-        self.db_handler.run_sql( sql=unicode(os.environ['RAPID__UPDATE_TEMP_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
-        result = self.db_handler.run_sql( sql=unicode(os.environ['RAPID__COUNT_TEMP_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
-        if result:
-            if result[0][0] > 10000:
-                self.db_handler.run_sql(
-                    sql=unicode(os.environ['RAPID__CLEAR_PRODUCTION_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
-        self.db_handler.run_sql( sql=unicode(os.environ['RAPID__UPDATE_PRODUCTION_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+        ## setup
+        ( rapid_keys, easya_keys ) = ( [], [] )
+        tuple_keys = { 'key': 0, 'issn': 1, 'start': 2, 'end': 3, 'location': 4, 'call_number': 5 }
+        key_int = tuple_keys['key']
+        ## get rapid keys
+        for title in PrintTitleDev.objects.all():
+            rapid_keys.append( title.key )
+        log.debug( 'len rapid_keys, {}'.format(len(rapid_keys)) )
+        ## get easyA keys
+        sql = 'SELECT * FROM `{}`'.format( RAPID__TITLES_TABLE_NAME )
+        result = self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
+        for row_tuple in result:
+            easya_keys.append( row_tuple[key_int] )
+        log.debug( 'len easya_keys, {}'.format(len(easya_keys)) )
+        ## intersect
+        rapid_not_in_easya = list( sets.Set(rapid_keys) - sets.Set(easya_keys) )
+        easya_not_in_rapid = list( sets.Set(easya_keys) - sets.Set(rapid_keys) )
+        log.debug( 'rapid_not_in_easya, {}'.format(rapid_not_in_easya) )
+        log.debug( 'easya_not_in_rapid, {}'.format(easya_not_in_rapid) )
+        ## add rapid entries
+        for rapid_key in rapid_not_in_easya:
+            rapid_title = PrintTitleDev.objects.get( key=rapid_key )
+            sql = '''
+                INSERT INTO `{destination_table}` ( `key`, `issn`, `start`, `end`, `location`, `call_number` )
+                VALUES ( '{key}', '{issn}', '{start}', '{end}', '{building}', '{call_number}' );
+                '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=rapid_title.key, issn=rapid_title.issn, start=rapid_title.start, end=rapid_title.end, building=rapid_title.building, call_number=rapid_title.call_number )
+            self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
+        ## remove easyA entries
+        for easya_key in easya_not_in_rapid:
+            1/0
         return
 
     # def update_production_table( self ):

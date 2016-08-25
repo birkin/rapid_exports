@@ -26,7 +26,7 @@ LOCATIONS_URL = unicode( os.environ['RAPID__LOCATIONS_JSON_URL'] )
 
 ## update production db ##
 DB_CONNECTION_URL = unicode( os.environ['RAPID__MANUAL_DB_CONNECTION_URL'] )
-DB_TITLES_TABLE = unicode( os.environ['RAPID__TITLES_TABLE_NAME'] )
+# DB_TITLES_TABLE = unicode( os.environ['RAPID__TITLES_TABLE_NAME'] )
 
 
 ###########
