@@ -166,48 +166,67 @@ class UpdateTitlesHelper( object ):
 
     def update_production_table( self ):
         """ Runs update-production sql.
-            TODO: a more elegant way to do this would be to query both tables, do a set intersection, and then do the appropriate small loop of additions and deletes.
+            Steps:
+            - clear easyA temp table
+            - update easyA temp table
+            - if temp table is populated, clear production easyA table
+            - populate easyA production table from temp table
+            To explore: another elegant way to do this would be to query both tables, do a set intersection, and then do the appropriate small loop of additions and deletes.
             Called by run_update() """
-        ## load all new data to memory
-        titles = PrintTitleDev.objects.all()
-        ## iterate through source-set adding new records if needed
-        for entry in titles:
-            sql = '''
-                SELECT * FROM `{destination_table}`
-                WHERE `key` = '{key}'
-                AND `issn` = '{issn}'
-                AND `start` = {start}
-                AND `end` = {end}
-                AND `location` = '{location}'
-                AND `call_number` = '{call_number}';
-                '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
-            result = self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
-            if result == None:
-                sql = '''
-                INSERT INTO `{destination_table}` ( `key`, `issn`, `start`, `end`, `location`, `call_number` )
-                VALUES ( '{key}', '{issn}', '{start}', '{end}', '{location}', '{call_number}' );
-                '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
-                self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
-        ## iterate through destination-set deleting records if they're not in the source
-        sql = '''SELECT * FROM `{}`;'''.format( unicode(os.environ['RAPID__TITLES_TABLE_NAME']) )
-        result = self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
-        tuple_keys = {
-            'key': 0, 'issn': 1, 'start': 2, 'end': 3, 'location': 4, 'call_number': 5 }
-        for tuple_entry in result:
-            match = PrintTitleDev.objects.filter(
-                key=tuple_keys['key'], issn=tuple_keys['issn'], start=int(tuple_keys['start']), end=int(tuple_keys['end']), building=tuple_keys['location'], call_number=tuple_keys['call_number'] )
-            if match == []:
-                sql = '''
-                    DELETE * FROM `{destination_table}`
-                    WHERE `key` = '{key}'
-                    AND `issn` = '{issn}'
-                    AND `start` = {start}
-                    AND `end` = {end}
-                    AND `location` = '{location}'
-                    AND `call_number` = '{call_number}'
-                    LIMIT 1;
-                    '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
+        self.db_handler.run_sql( sql=unicode(os.environ['RAPID__DELETE_TEMP_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+        self.db_handler.run_sql( sql=unicode(os.environ['RAPID__UPDATE_TEMP_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+        result = self.db_handler.run_sql( sql=unicode(os.environ['RAPID__COUNT_TEMP_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+        if result:
+            if result[0][0] > 10000:
+                self.db_handler.run_sql(
+                    sql=unicode(os.environ['RAPID__CLEAR_PRODUCTION_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
+        self.db_handler.run_sql( sql=unicode(os.environ['RAPID__UPDATE_PRODUCTION_SQL']), connection_url=settings_app.DB_CONNECTION_URL )
         return
+
+    # def update_production_table( self ):
+    #     """ Runs update-production sql.
+    #         TODO: a more elegant way to do this would be to query both tables, do a set intersection, and then do the appropriate small loop of additions and deletes.
+    #         Called by run_update() """
+    #     ## load all new data to memory
+    #     titles = PrintTitleDev.objects.all()
+    #     ## iterate through source-set adding new records if needed
+    #     for entry in titles:
+    #         sql = '''
+    #             SELECT * FROM `{destination_table}`
+    #             WHERE `key` = '{key}'
+    #             AND `issn` = '{issn}'
+    #             AND `start` = {start}
+    #             AND `end` = {end}
+    #             AND `location` = '{location}'
+    #             AND `call_number` = '{call_number}';
+    #             '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
+    #         result = self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
+    #         if result == None:
+    #             sql = '''
+    #             INSERT INTO `{destination_table}` ( `key`, `issn`, `start`, `end`, `location`, `call_number` )
+    #             VALUES ( '{key}', '{issn}', '{start}', '{end}', '{location}', '{call_number}' );
+    #             '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
+    #             self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
+    #     ## iterate through destination-set deleting records if they're not in the source
+    #     sql = '''SELECT * FROM `{}`;'''.format( unicode(os.environ['RAPID__TITLES_TABLE_NAME']) )
+    #     result = self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
+    #     tuple_keys = {
+    #         'key': 0, 'issn': 1, 'start': 2, 'end': 3, 'location': 4, 'call_number': 5 }
+    #     for tuple_entry in result:
+    #         match = PrintTitleDev.objects.filter(
+    #             key=tuple_keys['key'], issn=tuple_keys['issn'], start=int(tuple_keys['start']), end=int(tuple_keys['end']), building=tuple_keys['location'], call_number=tuple_keys['call_number'] )
+    #         if match == []:
+    #             sql = '''
+    #                 DELETE * FROM `{destination_table}`
+    #                 WHERE `key` = '{key}'
+    #                 AND `issn` = '{issn}'
+    #                 AND `start` = {start}
+    #                 AND `end` = {end}
+    #                 AND `location` = '{location}'
+    #                 AND `call_number` = '{call_number}'
+    #                 LIMIT 1;
+    #                 '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=entry.key, issn=entry.issn, start=entry.start, end=entry.end, location=entry.location, call_number=entry.call_number )
+    #     return
 
     # end class UpdateTitlesHelper
 
@@ -676,6 +695,7 @@ class ManualDbHandler( object ):
     def run_sql( self, sql, connection_url ):
         """ Executes sql.
             Called by UpdateTitlesHelper._make_backup_table() """
+        time.sleep( .25 )
         log.debug( 'sql, ```%s```' % sql )
         engine = alchemy_create_engine( connection_url )
         try:
