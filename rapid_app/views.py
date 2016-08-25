@@ -18,6 +18,7 @@ update_titles_hlpr = UpdateTitlesHelper()
 
 def tasks( request ):
     """ Shows tasks window. """
+    log.debug( 'starting tasks' )
     data = tasks_hlpr.make_context( request )
     response = tasks_hlpr.make_response( request, data )
     return response
@@ -33,7 +34,9 @@ def process_file_from_rapid( request ):
 
 def update_titles( request ):
     """ Backs up and updates easyAccess print-titles table. """
-    data = update_titles_hlpr.run_update( request )
+    log.debug( 'starting update_titles()')
+    update_titles_hlpr.run_update( request )
+    log.debug( 'returning response' )
     return HttpResponseRedirect( reverse('tasks_url') )
 
 def hi( request ):

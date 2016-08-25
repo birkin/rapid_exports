@@ -129,10 +129,13 @@ class UpdateTitlesHelper( object ):
     def run_update( self, request ):
         """ Calls the backup and update code.
             Called by views.update_production_easyA_titles() """
+        log.debug( 'calling update_older_backup()' )
         self.update_older_backup()
+        log.debug( 'calling update_backup()' )
         self.update_backup()
+        log.debug( 'calling update_production_table()' )
         self.update_production_table()
-        return 'ok'
+        return
 
     def update_older_backup( self ):
         """ Copies data from backup table to older backup table.
@@ -181,7 +184,7 @@ class UpdateTitlesHelper( object ):
             rapid_keys.append( title.key )
         log.debug( 'len rapid_keys, {}'.format(len(rapid_keys)) )
         ## get easyA keys
-        sql = 'SELECT * FROM `{}`'.format( RAPID__TITLES_TABLE_NAME )
+        sql = 'SELECT * FROM `{}`'.format( unicode(os.environ['RAPID__TITLES_TABLE_NAME']) )
         result = self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
         for row_tuple in result:
             easya_keys.append( row_tuple[key_int] )
@@ -199,9 +202,16 @@ class UpdateTitlesHelper( object ):
                 VALUES ( '{key}', '{issn}', '{start}', '{end}', '{building}', '{call_number}' );
                 '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=rapid_title.key, issn=rapid_title.issn, start=rapid_title.start, end=rapid_title.end, building=rapid_title.building, call_number=rapid_title.call_number )
             self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
+        log.debug( 'rapid additions to easyA complete' )
         ## remove easyA entries
         for easya_key in easya_not_in_rapid:
-            1/0
+            sql = '''
+                DELETE FROM `{destination_table}`
+                WHERE `key` = '{easya_key}'
+                LIMIT 1;
+                '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), easya_key=easya_key )
+            self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
+        log.debug( 'easyA deletions complete' )
         return
 
     # def update_production_table( self ):
