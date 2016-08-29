@@ -15,11 +15,12 @@ class RapidFileProcessor( object ):
         Main worker function: parse_file_from_rapid() """
 
     def __init__(self, from_rapid_filepath, from_rapid_utf8_filepath ):
-        # self.from_rapid_filepath = from_rapid_filepath  # actual initial file from rapid
         log.debug( 'initialized source-path, ```{source}```; destination-utf8-path, ```{destination}```'.format(source=from_rapid_filepath, destination=from_rapid_utf8_filepath) )
         self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
-        self.holdings_defs_dct = {
-            'key': 0, 'issn': 1, 'location': 2, 'building': 3, 'callnumber': 4, 'year_start': 5, 'year_end': 6 }
+        # self.updated_holdings_defs_dct = {
+        #     'key': 0, 'issn': 1, 'location': 2, 'building': 3, 'callnumber': 4, 'year_start': 5, 'year_end': 6 }  # original row-data has a 'location', not a 'building'
+        self.updated_holdings_defs_dct = {
+            'key': 0, 'issn': 1, 'title': 2, 'location': 3, 'building': 4, 'callnumber': 5, 'year_start': 6, 'year_end': 7 }  # original row-data has a 'location', not a 'building'
         self.utf8_maker = Utf8Maker( from_rapid_filepath, from_rapid_utf8_filepath )
 
     def parse_file_from_rapid( self ):
@@ -89,6 +90,22 @@ class RapidFileProcessor( object ):
         log.debug( 'years_held_lst, `%s`' % years_held_lst )
         return years_held_lst
 
+    # def _update_holdings_lst( self, holdings_lst, issn_dct ):
+    #     """ Builds final data lst entry.
+    #         Called by build_holdings_lst() """
+    #     issn = issn_dct['issn']
+    #     location = issn_dct['location']
+    #     building = issn_dct['building']
+    #     callnumber = issn_dct['call_number']
+    #     for period_dct in issn_dct['years_held']:
+    #         new_key = '%s%s' % ( issn.replace('-', ''), period_dct['start'] )
+    #         update_lst = [ new_key, issn, location, building, callnumber, period_dct['start'], period_dct['end'] ]
+    #         log.debug( 'update_lst, `%s`' % update_lst )
+    #         if update_lst not in holdings_lst:
+    #             log.debug( 'gonna update' )
+    #             holdings_lst.append( update_lst )
+    #     return holdings_lst
+
     def _update_holdings_lst( self, holdings_lst, issn_dct ):
         """ Builds final data lst entry.
             Called by build_holdings_lst() """
@@ -96,9 +113,10 @@ class RapidFileProcessor( object ):
         location = issn_dct['location']
         building = issn_dct['building']
         callnumber = issn_dct['call_number']
+        title = issn_dct['title']
         for period_dct in issn_dct['years_held']:
             new_key = '%s%s' % ( issn.replace('-', ''), period_dct['start'] )
-            update_lst = [ new_key, issn, location, building, callnumber, period_dct['start'], period_dct['end'] ]
+            update_lst = [ new_key, issn, title, location, building, callnumber, period_dct['start'], period_dct['end'] ]
             log.debug( 'update_lst, `%s`' % update_lst )
             if update_lst not in holdings_lst:
                 log.debug( 'gonna update' )
@@ -118,13 +136,14 @@ class RapidFileProcessor( object ):
             Called by update_dev_db() """
         for row in holdings_lst:
             title = PrintTitleDev()
-            title.key = row[self.holdings_defs_dct['key']]
-            title.issn = row[self.holdings_defs_dct['issn']]
-            title.start = row[self.holdings_defs_dct['year_start']]
-            title.end = row[self.holdings_defs_dct['year_end']]
-            title.location = row[self.holdings_defs_dct['location']]
-            title.building = row[self.holdings_defs_dct['building']]
-            title.call_number = row[self.holdings_defs_dct['callnumber']]
+            title.key = row[self.updated_holdings_defs_dct['key']]
+            title.issn = row[self.updated_holdings_defs_dct['issn']]
+            title.title = row[self.updated_holdings_defs_dct['title']]
+            title.start = row[self.updated_holdings_defs_dct['year_start']]
+            title.end = row[self.updated_holdings_defs_dct['year_end']]
+            title.location = row[self.updated_holdings_defs_dct['location']]
+            title.building = row[self.updated_holdings_defs_dct['building']]
+            title.call_number = row[self.updated_holdings_defs_dct['callnumber']]
             title.updated = unicode( datetime.date.today() )
             title.save()
         return
@@ -134,7 +153,7 @@ class RapidFileProcessor( object ):
             Called by update_dev_db() """
         key_list = []
         for row in holdings_lst:
-            holdings_key = row[self.holdings_defs_dct['key']]
+            holdings_key = row[self.updated_holdings_defs_dct['key']]
             if holdings_key not in key_list:
                 key_list.append( holdings_key )
         titles = PrintTitleDev.objects.all()
@@ -226,8 +245,6 @@ class HoldingsDctBuilder( object ):
             'year': 10
             }
         self.row_fixer = RowFixer( self.defs_dct )
-        self.holdings_defs_dct = {
-            'key': 0, 'issn': 1, 'location': 2, 'callnumber': 3, 'year_start': 4, 'year_end': 5 }
         self.locations_dct = self.update_locations_dct()
 
     def update_locations_dct( self ):
@@ -259,8 +276,10 @@ class HoldingsDctBuilder( object ):
             self.track_row( idx, entries_count )
             if 'Print' not in row:
                 continue
-            ( key, issn, location, building, callnumber, year ) = self.process_file_row( row )
-            holdings_dct = self.update_holdings_dct( holdings_dct, key, issn, location, building, callnumber, year )
+            # ( key, issn, location, building, callnumber, year ) = self.process_file_row( row )
+            ( key, issn, title, location, building, callnumber, year ) = self.process_file_row( row )
+            # holdings_dct = self.update_holdings_dct( holdings_dct, key, issn, location, building, callnumber, year )
+            holdings_dct = self.update_holdings_dct( holdings_dct, key, issn, title, location, building, callnumber, year )
         log.info( 'holdings_dct, ```%s```' % pprint.pformat(holdings_dct) )
         return holdings_dct
 
@@ -284,14 +303,37 @@ class HoldingsDctBuilder( object ):
             log.debug( '%s percent done (on row %s of %s)' % (prcnt_done, row_idx+1, entries_count) )  # +1 for 0 index
         return
 
+    # def process_file_row( self, row ):
+    #     """ Fixes row if necessary and builds elements.
+    #         Called by build_holdings_dct() """
+    #     row = [ field.decode('utf-8') for field in row ]
+    #     if len( row ) > 11:  # titles with commas
+    #         row = self.row_fixer.fix_row( row )
+    #     ( key, issn, location, building, callnumber, year ) = self._build_holdings_elements( row )
+    #     return ( key, issn, location, building, callnumber, year )
+
     def process_file_row( self, row ):
         """ Fixes row if necessary and builds elements.
             Called by build_holdings_dct() """
         row = [ field.decode('utf-8') for field in row ]
         if len( row ) > 11:  # titles with commas
             row = self.row_fixer.fix_row( row )
-        ( key, issn, location, building, callnumber, year ) = self._build_holdings_elements( row )
-        return ( key, issn, location, building, callnumber, year )
+        ( key, issn, title, location, building, callnumber, year ) = self._build_holdings_elements( row )
+        return ( key, issn, title, location, building, callnumber, year )
+
+    # def _build_holdings_elements( self, row ):
+    #     """ Extracts data from row-list.
+    #         Called by _process_file_row() """
+    #     # log.debug( 'row, ```%s```' % pprint.pformat(row) )
+    #     callnumber = row[self.defs_dct['callnumber']]
+    #     issn = row[self.defs_dct['issn_num']]
+    #     location = row[self.defs_dct['location']]
+    #     building = self._make_building( location )
+    #     year = row[self.defs_dct['year']]
+    #     normalized_issn = issn.replace( '-', '' )
+    #     normalized_callnumber = callnumber.replace( '-', '' ).replace( ' ', '' ).replace( '.', '' )
+    #     key = '%s%s%s' % ( normalized_issn, building, normalized_callnumber  )
+    #     return ( key, issn, location, building, callnumber, year )
 
     def _build_holdings_elements( self, row ):
         """ Extracts data from row-list.
@@ -299,13 +341,14 @@ class HoldingsDctBuilder( object ):
         # log.debug( 'row, ```%s```' % pprint.pformat(row) )
         callnumber = row[self.defs_dct['callnumber']]
         issn = row[self.defs_dct['issn_num']]
+        title = row[self.defs_dct['title']]
         location = row[self.defs_dct['location']]
         building = self._make_building( location )
         year = row[self.defs_dct['year']]
         normalized_issn = issn.replace( '-', '' )
         normalized_callnumber = callnumber.replace( '-', '' ).replace( ' ', '' ).replace( '.', '' )
         key = '%s%s%s' % ( normalized_issn, building, normalized_callnumber  )
-        return ( key, issn, location, building, callnumber, year )
+        return ( key, issn, title, location, building, callnumber, year )
 
     def _make_building( self, location ):
         """ Adds building-location.
@@ -325,12 +368,25 @@ class HoldingsDctBuilder( object ):
                 building = location
         return building
 
-    def update_holdings_dct( self, holdings, key, issn, location, building, callnumber, year ):
+    # def update_holdings_dct( self, holdings, key, issn, location, building, callnumber, year ):
+    #     """ Updates holdings dct.
+    #         Called by: build_holdings_dct() """
+    #     if key not in holdings.keys():
+    #         holdings[key] = {
+    #             'issn': issn, 'location': location, 'building': building, 'call_number': callnumber, 'years': [year] }
+    #     else:
+    #         if year and year not in holdings[key]['years']:
+    #             holdings[key]['years'].append( year )
+    #             holdings[key]['years'].sort()
+    #     # log.debug( 'holdings, ```%s```' % pprint.pformat(holdings) )
+    #     return holdings
+
+    def update_holdings_dct( self, holdings, key, issn, title, location, building, callnumber, year ):
         """ Updates holdings dct.
             Called by: build_holdings_dct() """
         if key not in holdings.keys():
             holdings[key] = {
-                'issn': issn, 'location': location, 'building': building, 'call_number': callnumber, 'years': [year] }
+                'issn': issn, 'title': title, 'location': location, 'building': building, 'call_number': callnumber, 'years': [year] }
         else:
             if year and year not in holdings[key]['years']:
                 holdings[key]['years'].append( year )
