@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import codecs, csv, datetime, itertools, logging, operator, pprint, shutil
 import requests
 from rapid_app import settings_app
-from rapid_app.models import PrintTitleDev, RowFixer
+from rapid_app.models import PrintTitleDev
 
 log = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class RapidFileProcessor( object ):
               - a file from-rapid is created that is known to be utf8-good
               - iterates through that file looking for `Print` entries; for those entries...  # HoldingsDctBuilder.build_holdings_dct()
                 - valid and massaged row-elements are obtained (sometimes a title contains unescaped commas)...  # HoldingsDctBuilder.process_file_row()
-                - if the entry doesn't exist, it's added to a holdings-dct (unique key on issn&year-start)
+                - if the entry doesn't exist, it's added to a holdings-dct (unique key on modified-issn & location & modified-callnumber)
               - a list is created from the dct of all print holdings, primarily making year-ranges
               - the preview-db is updated
               - the list is returned to the view in case the user requests a json response; othewise, the response is the preview admin screen.
@@ -339,3 +339,76 @@ class HoldingsDctBuilder( object ):
         return holdings
 
     # end class HoldingsDctBuilder
+
+
+class RowFixer( object ):
+    """ Fixes non-escaped csv strings.
+        Non-django class. """
+
+    def __init__(self, defs_dct ):
+        self.defs_dct = defs_dct  # { 'label 1': 'index position 1', ... }
+
+    def fix_row( self, row ):
+        """ Handles row containing non-escaped commas in title.
+            Called by RapidFileProcessor.build_holdings_dct() """
+        fixed_row = self.initialize_fixed_row( row )
+        for field in row:
+            current_element_num = row.index(field)
+            fixed_row = self.update_title( fixed_row, row, current_element_num, field )
+            if row[current_element_num + 1] == 'Print':
+                problem_defs_dct = self.make_problem_defs_dct( current_element_num )
+                fixed_row = self.finish_fixed_row( fixed_row, row, problem_defs_dct )
+                break
+        log.debug( 'fixed_row finally, ```%s```' % fixed_row )
+        return fixed_row
+
+    def initialize_fixed_row( self, row ):
+        """ Initializes fixed row with known correct row data.
+            Called by fix_row() """
+        fixed_row = []
+        fixed_row.append( row[self.defs_dct['library']] )
+        fixed_row.append( row[self.defs_dct['branch']] )
+        fixed_row.append( row[self.defs_dct['location']] )
+        fixed_row.append( row[self.defs_dct['callnumber']] )
+        fixed_row.append( row[self.defs_dct['title']] )
+        # log.debug( 'fixed_row initially, ```%s```' % fixed_row )
+        return fixed_row
+
+    def update_title( self, fixed_row, row, current_element_num, field ):
+        """ Processes additional title fields.
+            Called by fix_row() """
+        main_title_element_num = row.index( row[self.defs_dct['title']] )
+        if current_element_num > main_title_element_num:
+            if field[0:1] == ' ':  # additional title fields start with space
+                fixed_row[self.defs_dct['title']] = fixed_row[self.defs_dct['title']] + field + ','
+        # log.debug( 'fixed_row title updated, ```%s```' % fixed_row )
+        return fixed_row
+
+    def make_problem_defs_dct( self, current_element_num ):
+        """ Creates remaining definition-dct elements, given known current_element_num.
+            Called by fix_row() """
+        problem_defs_dct = {
+            'format': current_element_num + 1,
+            'issn_num': current_element_num + 2,
+            'issn_type': current_element_num + 3,
+            'vol_start': current_element_num + 4,
+            'vol_end': current_element_num + 5,
+            'year': current_element_num + 6
+            }
+        log.debug( 'problem_defs_dct, ```%s```' % problem_defs_dct )
+        return problem_defs_dct
+
+    def finish_fixed_row( self, fixed_row, row, problem_defs_dct ):
+        """ Updates remaining fixed-row elements.
+            Called by fix_row() """
+        fixed_row[self.defs_dct['title']] = fixed_row[self.defs_dct['title']][0:-1]  # slice off that last comma
+        fixed_row.append( row[problem_defs_dct['format']] )
+        fixed_row.append( row[problem_defs_dct['issn_num']] )
+        fixed_row.append( row[problem_defs_dct['issn_type']] )
+        fixed_row.append( row[problem_defs_dct['vol_start']] )
+        fixed_row.append( row[problem_defs_dct['vol_end']] )
+        fixed_row.append( row[problem_defs_dct['year']] )
+        # log.debug( 'fixed_row finished, ```%s```' % fixed_row )
+        return fixed_row
+
+    # end class RowFixer
