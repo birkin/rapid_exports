@@ -120,199 +120,139 @@ class RapidFileGrabber( object ):
     # end class RapidFileGrabber
 
 
-# class Utf8Maker( object ):
-#     """ Ensures file contains utf-8 data.
+# class HoldingsDctBuilder( object ):
+#     """ Builds dct of holdings from file.
 #         Non-django class. """
 
-#     def __init__(self, from_rapid_filepath, from_rapid_utf8_filepath ):
-#         self.from_rapid_filepath = from_rapid_filepath  # actual initial file from rapid
+#     def __init__(self, from_rapid_utf8_filepath ):
 #         self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
+#         self.defs_dct = {  # proper row field-definitions
+#             'library': 0,
+#             'branch': 1,
+#             'location': 2,
+#             'callnumber': 3,
+#             'title': 4,
+#             'format': 5,
+#             'issn_num': 6,
+#             'issn_type': 7,
+#             'vol_start': 8,
+#             'vol_end': 9,
+#             'year': 10
+#             }
+#         self.row_fixer = RowFixer( self.defs_dct )
+#         self.holdings_defs_dct = {
+#             'key': 0, 'issn': 1, 'location': 2, 'callnumber': 3, 'year_start': 4, 'year_end': 5 }
+#         self.locations_dct = self.update_locations_dct()
 
-#     def check_utf8( self, filepath=None ):
-#         """ Ensures file is utf-8 readable.
-#             Will error and return False if not.
-#             Called by parse_file_from_rapid() """
-#         path = filepath if filepath else self.from_rapid_filepath
-#         log.debug( 'checked path, `%s`' % path )
-#         utf8 = False
-#         with codecs.open( path, 'rb', 'utf-8' ) as myfile:
-#             try:
-#                 for line in myfile:  # reads line-by-line; doesn't tax memory on big files
-#                     pass
-#                 utf8 = True
-#             except Exception as e:
-#                 log.error( 'EXPECTED exception, `%s`' % unicode(repr(e)) )
-#         log.debug( 'utf8 check, `{}`'.format(utf8) )
-#         return utf8
+#     def update_locations_dct( self ):
+#         """ Populates class attribute with locations dct, used to populate `building` field.
+#             Called by __init__() """
+#         r = requests.get( settings_app.LOCATIONS_URL )
+#         dct = r.json()
+#         return dct
 
-#     def make_utf8( self ):
-#         """ Iterates through each line; ensures it can be converted to utf-8.
-#             Called by parse_file_from_rapid() """
+#     def build_holdings_dct( self ):
+#         """ Iterates through file, grabbing normalized print holdings.
+#             Sample print entries:
+#                 `RBN,Main Library,sci,TR1 .P58,Photographic abstracts,Print,0031-8701,ISSN,,,1962`
+#                 `RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie...,Print,0080-2042,ISSN,1,69,1938`
+#             Note: there are unescaped commas in some of the titles. Grrr.
+#             Builds and returns a dict like {
+#                 u'00029629sciR11A6': {
+#                     u'call_number': 'R11 .A6',
+#                     u'issn': '0002-9629',
+#                     u'location': 'sci',
+#                     u'years': ['1926', '1928'] },  # years are sorted
+#                 u'abc123': {
+#                     ... },
+#                     }
+#             Called by RapidFileProcessor.parse_file_from_rapid() """
+#         log.debug( 'starting build_holdings_dct()' )
+#         ( holdings_dct, csv_ref, entries_count ) = self.prep_holdings_dct_processing()
+#         for (idx, row) in enumerate(csv_ref):  # row is type() `list`
+#             self.track_row( idx, entries_count )
+#             if 'Print' not in row:
+#                 continue
+#             ( key, issn, location, building, callnumber, year ) = self.process_file_row( row )
+#             holdings_dct = self.update_holdings_dct( holdings_dct, key, issn, location, building, callnumber, year )
+#         log.info( 'holdings_dct, ```%s```' % pprint.pformat(holdings_dct) )
+#         return holdings_dct
+
+#     def prep_holdings_dct_processing( self ):
+#         """ Sets initial vars.
+#             Called by build_holdings_dct() """
+#         log.debug( 'using utf8-filepath, ```{}```'.format(self.from_rapid_utf8_filepath) )
+#         holdings_dct = {}
+#         tmp_csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
+#         entries_count = sum( 1 for row in tmp_csv_ref )  # runs through file, so have to open again
+#         csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
+#         log.debug( 'entries_count, `%s`' % entries_count )
+#         return ( holdings_dct, csv_ref, entries_count )
+
+#     def track_row( self, row_idx, entries_count ):
+#         """ For now, logs progress, can update status-db in future.
+#             Called by build_holdings_dct() """
+#         tn_prcnt = int( entries_count * .1 )  # ten percent
+#         if row_idx % tn_prcnt == 0:  # uses modulo
+#             prcnt_done = row_idx / (tn_prcnt/10)
+#             log.debug( '%s percent done (on row %s of %s)' % (prcnt_done, row_idx+1, entries_count) )  # +1 for 0 index
+#         return
+
+#     def process_file_row( self, row ):
+#         """ Fixes row if necessary and builds elements.
+#             Called by build_holdings_dct() """
+#         row = [ field.decode('utf-8') for field in row ]
+#         if len( row ) > 11:  # titles with commas
+#             row = self.row_fixer.fix_row( row )
+#         ( key, issn, location, building, callnumber, year ) = self._build_holdings_elements( row )
+#         return ( key, issn, location, building, callnumber, year )
+
+#     def _build_holdings_elements( self, row ):
+#         """ Extracts data from row-list.
+#             Called by _process_file_row() """
+#         # log.debug( 'row, ```%s```' % pprint.pformat(row) )
+#         callnumber = row[self.defs_dct['callnumber']]
+#         issn = row[self.defs_dct['issn_num']]
+#         location = row[self.defs_dct['location']]
+#         building = self._make_building( location )
+#         year = row[self.defs_dct['year']]
+#         normalized_issn = issn.replace( '-', '' )
+#         normalized_callnumber = callnumber.replace( '-', '' ).replace( ' ', '' ).replace( '.', '' )
+#         key = '%s%s%s' % ( normalized_issn, building, normalized_callnumber  )
+#         return ( key, issn, location, building, callnumber, year )
+
+#     def _make_building( self, location ):
+#         """ Adds building-location.
+#             Called by _build_holdings_elements() """
+#         building = None
 #         try:
-#             log.debug( 'src-path, `%s`; dest-path, `%s`' % (self.from_rapid_filepath, self.from_rapid_utf8_filepath) )
-#             with codecs.open( self.from_rapid_filepath, 'rb', 'utf-16' ) as input_file:
-#                 with open( self.from_rapid_utf8_filepath, 'wb' ) as output_file:
-#                     self._run_utf8_write( input_file, output_file )
-#             log.debug( 'utf8 file now at, `%s`' % self.from_rapid_utf8_filepath )
-#         except Exception as e:
-#             log.error( 'exception on source or destination file, `%s`' % unicode(repr(e)) )
-#             raise Exception( unicode(repr(e)) )
-#         return
+#             building = self.locations_dct['result']['items'][location]['building']
+#         except KeyError:
+#             if location.startswith('r'):
+#                 building = 'Rock'
+#             elif location.startswith('h'):
+#                 building = 'Hay'
+#             elif location.startswith('q'):
+#                 building = 'Annex'
+#             else:
+#                 log.warning( 'location code {} not recognized'.format(location) )
+#                 building = location
+#         return building
 
-#     def _run_utf8_write( self, input_file, output_file ):
-#         """ Runs the line-by-line utf8 transform.
-#             Called by make_utf8() """
-#         for line in input_file:
-#             try:
-#                 # assert( type(line) == unicode )
-#                 output_file.write( line.encode('utf-8') )
-#             except Exception as e:
-#                 log.error( 'exception, `%s`' % unicode(repr(e)) )
-#                 raise Exception( unicode(repr(e)) )
-#         return
+#     def update_holdings_dct( self, holdings, key, issn, location, building, callnumber, year ):
+#         """ Updates holdings dct.
+#             Called by: build_holdings_dct() """
+#         if key not in holdings.keys():
+#             holdings[key] = {
+#                 'issn': issn, 'location': location, 'building': building, 'call_number': callnumber, 'years': [year] }
+#         else:
+#             if year and year not in holdings[key]['years']:
+#                 holdings[key]['years'].append( year )
+#                 holdings[key]['years'].sort()
+#         # log.debug( 'holdings, ```%s```' % pprint.pformat(holdings) )
+#         return holdings
 
-#     def copy_utf8( self ):
-#         """ Copies good utf8 source file to utf8-filepath.
-#             Called by parse_file_from_rapid() """
-#         shutil.copy2( self.from_rapid_filepath, self.from_rapid_utf8_filepath )
-#         return
-
-#     # end class Utf8Maker
-
-
-class HoldingsDctBuilder( object ):
-    """ Builds dct of holdings from file.
-        Non-django class. """
-
-    def __init__(self, from_rapid_utf8_filepath ):
-        self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
-        self.defs_dct = {  # proper row field-definitions
-            'library': 0,
-            'branch': 1,
-            'location': 2,
-            'callnumber': 3,
-            'title': 4,
-            'format': 5,
-            'issn_num': 6,
-            'issn_type': 7,
-            'vol_start': 8,
-            'vol_end': 9,
-            'year': 10
-            }
-        self.row_fixer = RowFixer( self.defs_dct )
-        self.holdings_defs_dct = {
-            'key': 0, 'issn': 1, 'location': 2, 'callnumber': 3, 'year_start': 4, 'year_end': 5 }
-        self.locations_dct = self.update_locations_dct()
-
-    def update_locations_dct( self ):
-        """ Populates class attribute with locations dct, used to populate `building` field.
-            Called by __init__() """
-        r = requests.get( settings_app.LOCATIONS_URL )
-        dct = r.json()
-        return dct
-
-    def build_holdings_dct( self ):
-        """ Iterates through file, grabbing normalized print holdings.
-            Sample print entries:
-                `RBN,Main Library,sci,TR1 .P58,Photographic abstracts,Print,0031-8701,ISSN,,,1962`
-                `RBN,Main Library,qs,QP1 .E7,Ergebnisse der Physiologie, biologischen Chemie und experimentellen Pharmakologie...,Print,0080-2042,ISSN,1,69,1938`
-            Note: there are unescaped commas in some of the titles. Grrr.
-            Builds and returns a dict like {
-                u'00029629sciR11A6': {
-                    u'call_number': 'R11 .A6',
-                    u'issn': '0002-9629',
-                    u'location': 'sci',
-                    u'years': ['1926', '1928'] },  # years are sorted
-                u'abc123': {
-                    ... },
-                    }
-            Called by RapidFileProcessor.parse_file_from_rapid() """
-        log.debug( 'starting build_holdings_dct()' )
-        ( holdings_dct, csv_ref, entries_count ) = self.prep_holdings_dct_processing()
-        for (idx, row) in enumerate(csv_ref):  # row is type() `list`
-            self.track_row( idx, entries_count )
-            if 'Print' not in row:
-                continue
-            ( key, issn, location, building, callnumber, year ) = self.process_file_row( row )
-            holdings_dct = self.update_holdings_dct( holdings_dct, key, issn, location, building, callnumber, year )
-        log.info( 'holdings_dct, ```%s```' % pprint.pformat(holdings_dct) )
-        return holdings_dct
-
-    def prep_holdings_dct_processing( self ):
-        """ Sets initial vars.
-            Called by build_holdings_dct() """
-        log.debug( 'using utf8-filepath, ```{}```'.format(self.from_rapid_utf8_filepath) )
-        holdings_dct = {}
-        tmp_csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
-        entries_count = sum( 1 for row in tmp_csv_ref )  # runs through file, so have to open again
-        csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
-        log.debug( 'entries_count, `%s`' % entries_count )
-        return ( holdings_dct, csv_ref, entries_count )
-
-    def track_row( self, row_idx, entries_count ):
-        """ For now, logs progress, can update status-db in future.
-            Called by build_holdings_dct() """
-        tn_prcnt = int( entries_count * .1 )  # ten percent
-        if row_idx % tn_prcnt == 0:  # uses modulo
-            prcnt_done = row_idx / (tn_prcnt/10)
-            log.debug( '%s percent done (on row %s of %s)' % (prcnt_done, row_idx+1, entries_count) )  # +1 for 0 index
-        return
-
-    def process_file_row( self, row ):
-        """ Fixes row if necessary and builds elements.
-            Called by build_holdings_dct() """
-        row = [ field.decode('utf-8') for field in row ]
-        if len( row ) > 11:  # titles with commas
-            row = self.row_fixer.fix_row( row )
-        ( key, issn, location, building, callnumber, year ) = self._build_holdings_elements( row )
-        return ( key, issn, location, building, callnumber, year )
-
-    def _build_holdings_elements( self, row ):
-        """ Extracts data from row-list.
-            Called by _process_file_row() """
-        # log.debug( 'row, ```%s```' % pprint.pformat(row) )
-        callnumber = row[self.defs_dct['callnumber']]
-        issn = row[self.defs_dct['issn_num']]
-        location = row[self.defs_dct['location']]
-        building = self._make_building( location )
-        year = row[self.defs_dct['year']]
-        normalized_issn = issn.replace( '-', '' )
-        normalized_callnumber = callnumber.replace( '-', '' ).replace( ' ', '' ).replace( '.', '' )
-        key = '%s%s%s' % ( normalized_issn, building, normalized_callnumber  )
-        return ( key, issn, location, building, callnumber, year )
-
-    def _make_building( self, location ):
-        """ Adds building-location.
-            Called by _build_holdings_elements() """
-        building = None
-        try:
-            building = self.locations_dct['result']['items'][location]['building']
-        except KeyError:
-            if location.startswith('r'):
-                building = 'Rock'
-            elif location.startswith('h'):
-                building = 'Hay'
-            elif location.startswith('q'):
-                building = 'Annex'
-            else:
-                log.warning( 'location code {} not recognized'.format(location) )
-                building = location
-        return building
-
-    def update_holdings_dct( self, holdings, key, issn, location, building, callnumber, year ):
-        """ Updates holdings dct.
-            Called by: build_holdings_dct() """
-        if key not in holdings.keys():
-            holdings[key] = {
-                'issn': issn, 'location': location, 'building': building, 'call_number': callnumber, 'years': [year] }
-        else:
-            if year and year not in holdings[key]['years']:
-                holdings[key]['years'].append( year )
-                holdings[key]['years'].sort()
-        # log.debug( 'holdings, ```%s```' % pprint.pformat(holdings) )
-        return holdings
-
-    # end class HoldingsDctBuilder
+#     # end class HoldingsDctBuilder
 
 
 class RowFixer( object ):
