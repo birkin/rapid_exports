@@ -52,6 +52,9 @@ class ProcessorTracker( models.Model ):
     def __unicode__(self):
         return '{status}__{started}'.format( status=self.current_status, started=self.processing_started )
 
+    class Meta:
+       verbose_name_plural = "Processor Tracker"
+
     # end class PrintTitleDev
 
 

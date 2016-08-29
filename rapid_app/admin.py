@@ -18,6 +18,7 @@ class PrintTitleDevAdmin( admin.ModelAdmin ):
 class ProcessorTrackerAdmin( admin.ModelAdmin ):
     list_display = [
         'current_status', 'processing_started', 'procesing_ended', 'recent_processing' ]
+    readonly_fields = list_display
 
 
 admin.site.register( PrintTitleDev, PrintTitleDevAdmin )
