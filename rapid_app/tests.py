@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 import logging, os, pprint
 from django.test import TestCase
 from rapid_app import settings_app
-from rapid_app.lib.processor import RapidFileProcessor
-from rapid_app.models import HoldingsDctBuilder, RapidFileGrabber, RowFixer, Utf8Maker
+from rapid_app.lib.processor import RapidFileProcessor, Utf8Maker
+from rapid_app.models import HoldingsDctBuilder, RapidFileGrabber, RowFixer
 from sqlalchemy import create_engine as alchemy_create_engine
 from sqlalchemy.orm import sessionmaker as alchemy_sessionmaker, scoped_session as alchemy_scoped_session
 

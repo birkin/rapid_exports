@@ -2,8 +2,8 @@
 
 from __future__ import unicode_literals
 
-import datetime, itertools, logging, operator, pprint
-from rapid_app.models import HoldingsDctBuilder, Utf8Maker  # TODO: move out of models.py
+import codecs, datetime, itertools, logging, operator, pprint, shutil
+from rapid_app.models import HoldingsDctBuilder  # TODO: move out of models.py
 from rapid_app.models import PrintTitleDev
 
 log = logging.getLogger(__name__)
@@ -143,3 +143,63 @@ class RapidFileProcessor( object ):
         return
 
     # end class RapidFileProcessor
+
+
+class Utf8Maker( object ):
+    """ Ensures file contains utf-8 data.
+        Non-django class. """
+
+    def __init__(self, from_rapid_filepath, from_rapid_utf8_filepath ):
+        self.from_rapid_filepath = from_rapid_filepath  # actual initial file from rapid
+        self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
+
+    def check_utf8( self, filepath=None ):
+        """ Ensures file is utf-8 readable.
+            Will error and return False if not.
+            Called by parse_file_from_rapid() """
+        path = filepath if filepath else self.from_rapid_filepath
+        log.debug( 'checked path, `%s`' % path )
+        utf8 = False
+        with codecs.open( path, 'rb', 'utf-8' ) as myfile:
+            try:
+                for line in myfile:  # reads line-by-line; doesn't tax memory on big files
+                    pass
+                utf8 = True
+            except Exception as e:
+                log.error( 'EXPECTED exception, `%s`' % unicode(repr(e)) )
+        log.debug( 'utf8 check, `{}`'.format(utf8) )
+        return utf8
+
+    def make_utf8( self ):
+        """ Iterates through each line; ensures it can be converted to utf-8.
+            Called by parse_file_from_rapid() """
+        try:
+            log.debug( 'src-path, `%s`; dest-path, `%s`' % (self.from_rapid_filepath, self.from_rapid_utf8_filepath) )
+            with codecs.open( self.from_rapid_filepath, 'rb', 'utf-16' ) as input_file:
+                with open( self.from_rapid_utf8_filepath, 'wb' ) as output_file:
+                    self._run_utf8_write( input_file, output_file )
+            log.debug( 'utf8 file now at, `%s`' % self.from_rapid_utf8_filepath )
+        except Exception as e:
+            log.error( 'exception on source or destination file, `%s`' % unicode(repr(e)) )
+            raise Exception( unicode(repr(e)) )
+        return
+
+    def _run_utf8_write( self, input_file, output_file ):
+        """ Runs the line-by-line utf8 transform.
+            Called by make_utf8() """
+        for line in input_file:
+            try:
+                # assert( type(line) == unicode )
+                output_file.write( line.encode('utf-8') )
+            except Exception as e:
+                log.error( 'exception, `%s`' % unicode(repr(e)) )
+                raise Exception( unicode(repr(e)) )
+        return
+
+    def copy_utf8( self ):
+        """ Copies good utf8 source file to utf8-filepath.
+            Called by parse_file_from_rapid() """
+        shutil.copy2( self.from_rapid_filepath, self.from_rapid_utf8_filepath )
+        return
+
+    # end class Utf8Maker
