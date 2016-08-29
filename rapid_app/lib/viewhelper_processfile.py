@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import json, logging
 from django.http import HttpResponse, HttpResponseRedirect
 from rapid_app import settings_app
-from rapid_app.models import RapidFileProcessor
+from rapid_app.lib.processor import RapidFileProcessor
 
 log = logging.getLogger(__name__)
 
