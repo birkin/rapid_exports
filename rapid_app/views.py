@@ -8,7 +8,8 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from rapid_app.classes.viewhelper_tasks import TasksHelper
-from rapid_app.models import ProcessFileFromRapidHelper, UpdateTitlesHelper
+from rapid_app.classes.viewhelper_processfile import ProcessFileFromRapidHelper
+from rapid_app.models import UpdateTitlesHelper
 
 
 log = logging.getLogger(__name__)
