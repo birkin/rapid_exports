@@ -9,7 +9,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from rapid_app.classes.viewhelper_tasks import TasksHelper
 from rapid_app.classes.viewhelper_processfile import ProcessFileFromRapidHelper
-from rapid_app.models import UpdateTitlesHelper
+from rapid_app.classes.viewhelper_updatedb import UpdateTitlesHelper
 
 
 log = logging.getLogger(__name__)
