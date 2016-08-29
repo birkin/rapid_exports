@@ -64,53 +64,6 @@ class ProcessorTracker( models.Model ):
 #########################
 
 
-# class TasksHelper( object ):
-#     """ Manages view.tasks() work.
-#         Non-django class. """
-
-#     def make_context( self, request ):
-#         """ Prepares data.
-#             Called by views.tasks() """
-#         log.info( 'starting tasks' )
-#         d = {
-#             'process_file_from_rapid_url': reverse('process_file_from_rapid_url'),
-#             'check_data_url': reverse('admin:rapid_app_printtitledev_changelist'),
-#             }
-#         return d
-
-#     def make_response( self, request, data ):
-#         """ Prepares response.
-#             Called by views.tasks() """
-#         if request.GET.get( 'format' ) == 'json':
-#             output = json.dumps( data, sort_keys=True, indent=2 )
-#             resp = HttpResponse( output, content_type=u'application/javascript; charset=utf-8' )
-#         else:
-#             resp = render( request, 'rapid_app_templates/tasks.html', data )
-#         return resp
-
-#     # end class TasksHelper
-
-
-class GrabFileFromRapid( object ):
-    """ Manages views.grab_file_from_rapid() work.
-        TODO; view not yet implemented. """
-
-    def _setup_grabber( self ):
-        """ Initializes grabber.
-            Called by initiate_work() """
-        grabber = RapidFileGrabber(
-            settings_app.REMOTE_SERVER_NAME,
-            settings_app.REMOTE_SERVER_USERNAME,
-            settings_app.REMOTE_SERVER_PASSWORD,
-            settings_app.REMOTE_FILEPATH,
-            settings_app.LOCAL_DESTINATION_FILEPATH,
-            settings_app.ZIPFILE_EXTRACT_DIR_PATH,
-            )
-        return grabber
-
-    # end class GrabFileFromRapid
-
-
 class ProcessFileFromRapidHelper( object ):
     """ Manages views.process_file_from_rapid() work. """
 
