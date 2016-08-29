@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 
 class PrintTitleDev( models.Model ):
     """ Shows the dev db as it _will_ be populated.
-        Not populated by django orm code -- just here for admin viewing convenience. """
+        Db will is populated by another admin task. """
     key = models.CharField( max_length=20, primary_key=True )
     issn = models.CharField( max_length=15 )
     start = models.IntegerField()
@@ -40,6 +40,20 @@ class PrintTitleDev( models.Model ):
         return '%s__%s_to_%s' % ( self.issn, self.start, self.end )
 
     # end class PrintTitleDev
+
+
+class ProcessorTracker( models.Model ):
+    """ Tracks current-status and recent-processing. """
+    current_status = models.CharField( max_length=50, blank=True, null=True )
+    processing_started = models.DateTimeField()
+    procesing_ended = models.DateTimeField()
+    recent_processing = models.TextField()
+
+    def __unicode__(self):
+        return '{status}__{started}'.format( status=self.current_status, started=self.processing_started )
+
+    # end class PrintTitleDev
+
 
 
 #########################
@@ -169,32 +183,54 @@ class UpdateTitlesHelper( object ):
 
     def update_production_table( self ):
         """ Runs update-production sql.
-            Steps:
-            - get list of keys from rapid table
-            - get list of keys from production easyA table
-            - run a set intersection
-            - add keys to, and delete keys from easyA table
             Called by run_update() """
-        ## setup
-        ( rapid_keys, easya_keys ) = ( [], [] )
+        ( rapid_keys, easya_keys, key_int ) = self._setup_vars()    # setup
+        rapid_keys = self._populate_rapid_keys( rapid_keys )        # get rapid keys
+        easya_keys = self._populate_easya_keys( easya_keys )        # get easyA keys
+        ( rapid_not_in_easya, easya_not_in_rapid ) = self._intersect_keys( rapid_keys, easya_keys)  # intersect sets
+        self._add_rapid_entries( rapid_not_in_easya )               # insert new rapid records
+        self._remove_easya_entries( easya_not_in_rapid )            # run easyA deletions
+        return
+
+    def _setup_vars( self ):
+        """ Preps vars.
+            Called by update_production_table() """
+        rapid_keys = []
+        easya_keys = []
         tuple_keys = { 'key': 0, 'issn': 1, 'start': 2, 'end': 3, 'location': 4, 'call_number': 5 }
-        key_int = tuple_keys['key']
-        ## get rapid keys
+        key_int = tuple_keys['key']  # only using zero now, might use other tuple-elements later
+        return ( rapid_keys, easya_keys, key_int )
+
+    def _populate_rapid_keys( self, rapid_keys ):
+        """ Preps list of rapid keys.
+            Called by update_production_table() """
         for title in PrintTitleDev.objects.all():
             rapid_keys.append( title.key )
         log.debug( 'len rapid_keys, {}'.format(len(rapid_keys)) )
-        ## get easyA keys
+        return rapid_keys
+
+    def _populate_easya_keys( self, easya_keys ):
+        """ Preps list of easya keys.
+            Called by update_production_table() """
         sql = 'SELECT * FROM `{}`'.format( unicode(os.environ['RAPID__TITLES_TABLE_NAME']) )
         result = self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
         for row_tuple in result:
             easya_keys.append( row_tuple[key_int] )
         log.debug( 'len easya_keys, {}'.format(len(easya_keys)) )
-        ## intersect
+        return easya_keys
+
+    def _intersect_keys( self, rapid_keys, easya_keys):
+        """ Runs set work.
+            Called by update_production_table() """
         rapid_not_in_easya = list( sets.Set(rapid_keys) - sets.Set(easya_keys) )
         easya_not_in_rapid = list( sets.Set(easya_keys) - sets.Set(rapid_keys) )
         log.debug( 'rapid_not_in_easya, {}'.format(rapid_not_in_easya) )
         log.debug( 'easya_not_in_rapid, {}'.format(easya_not_in_rapid) )
-        ## add rapid entries
+        return ( rapid_not_in_easya, easya_not_in_rapid )
+
+    def _add_rapid_entries( self, rapid_not_in_easya ):
+        """ Runs inserts of new records.
+            Called by update_production_table() """
         for rapid_key in rapid_not_in_easya:
             rapid_title = PrintTitleDev.objects.get( key=rapid_key )
             sql = '''
@@ -203,7 +239,11 @@ class UpdateTitlesHelper( object ):
                 '''.format( destination_table=unicode(os.environ['RAPID__TITLES_TABLE_NAME']), key=rapid_title.key, issn=rapid_title.issn, start=rapid_title.start, end=rapid_title.end, building=rapid_title.building, call_number=rapid_title.call_number )
             self.db_handler.run_sql( sql=sql, connection_url=settings_app.DB_CONNECTION_URL )
         log.debug( 'rapid additions to easyA complete' )
-        ## remove easyA entries
+        return
+
+    def _remove_easya_entries( self, easya_not_in_rapid ):
+        """ Runs deletion of old records.
+            Called by update_production_table() """
         for easya_key in easya_not_in_rapid:
             sql = '''
                 DELETE FROM `{destination_table}`
