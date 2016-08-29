@@ -25,8 +25,13 @@ class RapidFileProcessor( object ):
         """ Extracts print holdings from the file-from-rapid.
             That file contains both print and online holdings.
             Steps...
-              - a file is created that is known to be utf8-good
-              - to continue...
+              - a file from-rapid is created that is known to be utf8-good
+              - iterates through that file looking for `Print` entries; for those entries...  # HoldingsDctBuilder.build_holdings_dct()
+                - valid and massaged row-elements are obtained (sometimes a title contains unescaped commas)...  # HoldingsDctBuilder.process_file_row()
+                - if the entry doesn't exist, it's added to a holdings-dct (unique key on issn&year-start)
+              - a list is created from the dct of all print holdings, primarily making year-ranges
+              - the preview-db is updated
+              - the list is returned to the view in case the user requests a json response; othewise, the response is the preview admin screen.
             Called by viewhelper_processfile.ProcessFileFromRapidHelper.initiate_work() """
         log.debug( 'starting parse' )
         if self.utf8_maker.check_utf8() is False:
