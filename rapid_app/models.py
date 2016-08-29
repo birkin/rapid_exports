@@ -35,6 +35,7 @@ class PrintTitleDev( models.Model ):
     building = models.CharField( max_length=25, blank=True, null=True )
     call_number = models.CharField( max_length=50, blank=True, null=True )
     date_updated = models.DateTimeField( 'other--date-updated', auto_now=True )
+    title = models.TextField( 'ss--title', blank=True, null=True )
 
     def __unicode__(self):
         return '%s__%s_to_%s' % ( self.issn, self.start, self.end )
@@ -47,7 +48,7 @@ class ProcessorTracker( models.Model ):
     current_status = models.CharField( max_length=50, blank=True, null=True )
     processing_started = models.DateTimeField()
     procesing_ended = models.DateTimeField()
-    recent_processing = models.TextField()
+    recent_processing = models.TextField( blank=True, null=True )
 
     def __unicode__(self):
         return '{status}__{started}'.format( status=self.current_status, started=self.processing_started )
