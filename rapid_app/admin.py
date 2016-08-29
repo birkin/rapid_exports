@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 from django.contrib import admin
-from rapid_app.models import PrintTitleDev
+from rapid_app.models import PrintTitleDev, ProcessorTracker
 
 
 class PrintTitleDevAdmin( admin.ModelAdmin ):
@@ -14,7 +14,11 @@ class PrintTitleDevAdmin( admin.ModelAdmin ):
     # readonly_fields = list_display
     list_filter = [ 'building', 'location', 'issn' ]
 
-    # end class
+
+class ProcessorTrackerAdmin( admin.ModelAdmin ):
+    list_display = [
+        'current_status', 'processing_started', 'procesing_ended', 'recent_processing' ]
 
 
 admin.site.register( PrintTitleDev, PrintTitleDevAdmin )
+admin.site.register( ProcessorTracker, ProcessorTrackerAdmin )
