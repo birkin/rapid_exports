@@ -30,8 +30,8 @@ class RapidFileProcessor( object ):
               - iterates through that file looking for `Print` entries; for those entries...  # HoldingsDctBuilder.build_holdings_dct()
                 - valid and massaged row-elements are obtained (sometimes a title contains unescaped commas)...  # HoldingsDctBuilder.process_file_row()
                 - if the entry doesn't exist, it's added to a holdings-dct (unique key on modified-issn & location & modified-callnumber)
-              - a list is created from the dct of all print holdings, primarily making year-ranges
-              - the preview-db is updated
+              - a list is created from the dct of all print holdings, primarily making year-ranges  # build_holdings_lst()
+              - the preview-db is updated  # update_dev_db()
               - the list is returned to the view in case the user requests a json response; othewise, the response is the preview admin screen.
             Called by viewhelper_processfile.ProcessFileFromRapidHelper.initiate_work() """
         log.debug( 'starting parse' )
