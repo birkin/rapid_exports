@@ -14,45 +14,6 @@ log = logging.getLogger(__name__)
 TestCase.maxDiff = None
 
 
-# class RapidFileGrabberTest( TestCase ):
-#     """ Tests models.RapidFileGrabber() """
-
-#     def setUp( self ):
-#         """ Runs initialization; ensures test-file doesn't exist locally. """
-#         assert os.path.isfile( settings_app.TEST_LOCAL_DESTINATION_FILEPATH ) == False
-#         self.grabber = RapidFileGrabber(
-#             settings_app.TEST_REMOTE_SERVER_NAME,
-#             settings_app.TEST_REMOTE_SERVER_PORT,
-#             settings_app.TEST_REMOTE_SERVER_USERNAME,
-#             settings_app.TEST_REMOTE_SERVER_PASSWORD,
-#             settings_app.TEST_REMOTE_FILEPATH,
-#             settings_app.TEST_LOCAL_DESTINATION_FILEPATH,
-#             settings_app.TEST_ZIPFILE_EXTRACT_DIR_PATH,
-#             )
-
-#     def test__grab_file( self ):
-#         """ Tests grab of remote file. """
-#         self.grabber.grab_file()
-#         self.assertEqual(
-#             2277,  # bytes
-#             os.path.getsize(settings_app.TEST_LOCAL_DESTINATION_FILEPATH) )
-
-#     def test__unzip_file( self ):
-#         """ Tests unzip of downloaded file. """
-#         self.grabber.local_destination_filepath = settings_app.TEST_ZIPFILE_FILEPATH  # rapid_app/test_files/test_RBNextract.zip
-#         self.grabber.unzip_file()
-#         self.assertEqual(
-#             20576,  # bytes
-#             os.path.getsize('%s/%s' % (settings_app.TEST_ZIPFILE_EXTRACT_DIR_PATH, settings_app.TEST_ZIPFILE_EXTRACT_FILENAME)) )
-
-#     def tearDown( self ):
-#         """ Removes downloaded test-file. """
-#         if os.path.isfile( settings_app.TEST_LOCAL_DESTINATION_FILEPATH ):
-#             os.remove( settings_app.TEST_LOCAL_DESTINATION_FILEPATH )
-
-#     # end class RapidFileGrabberTest
-
-
 class Utf8MakerTest( TestCase ):
     """ Tests models.Utf8Maker """
 
@@ -183,6 +144,15 @@ class HoldingsDctBuilderTest( TestCase ):
         """ Runs initialization. """
         self.builder = HoldingsDctBuilder(
             settings_app.TEST_FROM_RAPID_UTF8_FILEPATH,
+            )
+
+    def test__build_holdings_elements( self):
+        """ Checkds dct-entry prepared from row data.
+            Returned data definition: ( key, issn, title, location, building, callnumber, year ) """
+        row = [u'RBN', u'Main Library', u'sci', u'1-SIZE TN24.T2 A2', u'Information circular / State of Tennessee Department of Conservation, Division of Geology', u'Print', u'0492-7079', u'ISSN', u'', u'', u'1971']
+        self.assertEqual(
+            (u'04927079Sciences1SIZETN24T2A2', u'0492-7079', u'Information circular / State of Tennessee Department of Conservation, Division of Geology', u'sci', u'Sciences', u'1-SIZE TN24.T2 A2', u'1971'),
+            self.builder._build_holdings_elements(row)
             )
 
     def test__build_holdings_dct( self ):
@@ -363,4 +333,40 @@ class SqlAlchemyTest( TestCase ):
     # end class SqlAlchemyTest
 
 
-## end ##
+# class RapidFileGrabberTest( TestCase ):
+#     """ Tests models.RapidFileGrabber() """
+
+#     def setUp( self ):
+#         """ Runs initialization; ensures test-file doesn't exist locally. """
+#         assert os.path.isfile( settings_app.TEST_LOCAL_DESTINATION_FILEPATH ) == False
+#         self.grabber = RapidFileGrabber(
+#             settings_app.TEST_REMOTE_SERVER_NAME,
+#             settings_app.TEST_REMOTE_SERVER_PORT,
+#             settings_app.TEST_REMOTE_SERVER_USERNAME,
+#             settings_app.TEST_REMOTE_SERVER_PASSWORD,
+#             settings_app.TEST_REMOTE_FILEPATH,
+#             settings_app.TEST_LOCAL_DESTINATION_FILEPATH,
+#             settings_app.TEST_ZIPFILE_EXTRACT_DIR_PATH,
+#             )
+
+#     def test__grab_file( self ):
+#         """ Tests grab of remote file. """
+#         self.grabber.grab_file()
+#         self.assertEqual(
+#             2277,  # bytes
+#             os.path.getsize(settings_app.TEST_LOCAL_DESTINATION_FILEPATH) )
+
+#     def test__unzip_file( self ):
+#         """ Tests unzip of downloaded file. """
+#         self.grabber.local_destination_filepath = settings_app.TEST_ZIPFILE_FILEPATH  # rapid_app/test_files/test_RBNextract.zip
+#         self.grabber.unzip_file()
+#         self.assertEqual(
+#             20576,  # bytes
+#             os.path.getsize('%s/%s' % (settings_app.TEST_ZIPFILE_EXTRACT_DIR_PATH, settings_app.TEST_ZIPFILE_EXTRACT_FILENAME)) )
+
+#     def tearDown( self ):
+#         """ Removes downloaded test-file. """
+#         if os.path.isfile( settings_app.TEST_LOCAL_DESTINATION_FILEPATH ):
+#             os.remove( settings_app.TEST_LOCAL_DESTINATION_FILEPATH )
+
+#     # end class RapidFileGrabberTest

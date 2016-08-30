@@ -258,9 +258,7 @@ class HoldingsDctBuilder( object ):
             self.track_row( idx, entries_count )
             if 'Print' not in row:
                 continue
-            # ( key, issn, location, building, callnumber, year ) = self.process_file_row( row )
             ( key, issn, title, location, building, callnumber, year ) = self.process_file_row( row )
-            # holdings_dct = self.update_holdings_dct( holdings_dct, key, issn, location, building, callnumber, year )
             holdings_dct = self.update_holdings_dct( holdings_dct, key, issn, title, location, building, callnumber, year )
         log.info( 'holdings_dct, ```%s```' % pprint.pformat(holdings_dct) )
         return holdings_dct
