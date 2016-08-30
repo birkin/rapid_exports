@@ -155,6 +155,22 @@ class HoldingsDctBuilderTest( TestCase ):
             self.builder._build_holdings_elements(row)
             )
 
+    def test__build_url( self ):
+        """ Checks url built from title. """
+        title = '5th IEEE International Workshop on Object-Orientation in Operating Systems'
+        self.assertEqual(
+            'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q=5th+IEEE+International+Workshop+on+Object-Orientation+in+Operating+Systems',
+            self.builder._build_url( title )
+            )
+
+    def test__build_url_nonascii( self ):
+        """ Checks temporary handling of non-ascii text. """
+        title = 'Zeitschrift für anorganische und allgemeine Chemie'
+        self.assertEqual(
+            'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q=Zeitschrift+anorganische+und+allgemeine+Chemie',
+            self.builder._build_url( title )
+            )
+
     def test__build_holdings_dct( self ):
         """ Tests filtering and parsing of records for easyAccess db. """
         # pprint.pprint( self.builder.build_holdings_dct() )

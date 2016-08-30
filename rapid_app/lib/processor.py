@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import codecs, csv, datetime, itertools, logging, operator, pprint, shutil
 import requests
+from django.utils.http import urlquote_plus
 from rapid_app import settings_app
 from rapid_app.models import PrintTitleDev
 
@@ -330,13 +331,29 @@ class HoldingsDctBuilder( object ):
             Called by: build_holdings_dct() """
         if key not in holdings.keys():
             holdings[key] = {
-                'issn': issn, 'title': title, 'location': location, 'building': building, 'call_number': callnumber, 'years': [year] }
+                'issn': issn, 'title': title, 'url': self._build_url(title), 'location': location, 'building': building, 'call_number': callnumber, 'years': [year] }
         else:
             if year and year not in holdings[key]['years']:
                 holdings[key]['years'].append( year )
                 holdings[key]['years'].sort()
         # log.debug( 'holdings, ```%s```' % pprint.pformat(holdings) )
         return holdings
+
+    def _build_url( self, title ):
+        """ Builds search-url.
+            Eventually should be able to use good url as-is -- this works around current encoding issue.
+                Testing shows that an incorrectly encoded search will not return results, but eliminating the problemmatic world will. """
+        new_word_list = []
+        for word in title.split():
+            try:
+                word.encode( 'ascii' )
+                new_word_list.append( word )
+            except:
+                pass
+        search_title = ' '.join( new_word_list )
+        quoted_title = urlquote_plus( search_title )
+        url = 'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q={}'.format( quoted_title )
+        return url
 
     # end class HoldingsDctBuilder
 
