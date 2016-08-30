@@ -181,6 +181,7 @@ class HoldingsDctBuilderTest( TestCase ):
                 u'issn': u'0002-9483',
                 u'location': u'qs',
                 u'title': u'American journal of physical anthropology',
+                u'url': u'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q=American+journal+of+physical+anthropology',
                 u'years': [u'1919']},
             u'00029629SciencesR11A6': {
                 u'building': u'Sciences',
@@ -188,6 +189,7 @@ class HoldingsDctBuilderTest( TestCase ):
                 u'issn': u'0002-9629',
                 u'location': u'sci',
                 u'title': u'The American journal of the medical sciences',
+                u'url': u'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q=The+American+journal+of+the+medical+sciences',
                 u'years': [u'1926', u'1928']},
             u'0022197XRockJX1C58': {
                 u'building': u'Rock',
@@ -195,6 +197,7 @@ class HoldingsDctBuilderTest( TestCase ):
                 u'issn': u'0022-197X',
                 u'location': u'rsmch',
                 u'title': u'Journal of international affairs',
+                u'url': u'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q=Journal+of+international+affairs',
                 u'years': [u'1991', u'1992']},
             u'00318701SciencesTR1P58': {
                 u'building': u'Sciences',
@@ -202,6 +205,7 @@ class HoldingsDctBuilderTest( TestCase ):
                 u'issn': u'0031-8701',
                 u'location': u'sci',
                 u'title': u'Photographic abstracts',
+                u'url': u'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q=Photographic+abstracts',
                 u'years': [u'1962']},
             u'00802042AnnexQP1E7': {
                 u'building': u'Annex',
@@ -209,6 +213,7 @@ class HoldingsDctBuilderTest( TestCase ):
                 u'issn': u'0080-2042',
                 u'location': u'qs',
                 u'title': u'Ergebnisse der Physiologie biologischen Chemie und experimentellen Pharmakologie. Reviews of physiology, biochemistry, and experimental pharmacology',
+                u'url': u'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q=Ergebnisse+der+Physiologie+biologischen+Chemie+und+experimentellen+Pharmakologie.+Reviews+of+physiology%2C+biochemistry%2C+and+experimental+pharmacology',
                 u'years': [u'1937', u'1938']},
             u'04927079Sciences1SIZETN24T2A2': {
                 u'building': u'Sciences',
@@ -216,6 +221,7 @@ class HoldingsDctBuilderTest( TestCase ):
                 u'issn': u'0492-7079',
                 u'location': u'sci',
                 u'title': u'Information circular / State of Tennessee Department of Conservation, Division of Geology',
+                u'url': u'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q=Information+circular+%2F+State+of+Tennessee+Department+of+Conservation%2C+Division+of+Geology',
                 u'years': [u'1971']}},
             self.builder.build_holdings_dct()
             )
