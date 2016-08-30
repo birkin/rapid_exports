@@ -84,6 +84,7 @@ class RapidFileProcessorTest( TestCase ):
                 u'call_number': '1-SIZE GN1 .A55',
                 u'issn': '0002-9483',
                 u'title': u'aa',
+                u'url': u'url_aa',
                 u'location': 'qs',
                 u'years': ['1919']},
              u'00029629sciR11A6': {
@@ -91,6 +92,7 @@ class RapidFileProcessorTest( TestCase ):
                 u'call_number': 'R11 .A6',
                 u'issn': '0002-9629',
                 u'title': u'bb',
+                u'url': u'url_bb',
                 u'location': 'sci',
                 u'years': ['1926', '1928']},
              u'0022197XrsmchJX1C58': {
@@ -98,6 +100,7 @@ class RapidFileProcessorTest( TestCase ):
                 u'call_number': 'JX1 .C58',
                 u'issn': '0022-197X',
                 u'title': u'cc',
+                u'url': u'url_cc',
                 u'location': 'rsmch',
                 u'years': ['1991', '1992']},
              u'00318701sciTR1P58': {
@@ -105,6 +108,7 @@ class RapidFileProcessorTest( TestCase ):
                 u'call_number': 'TR1 .P58',
                 u'issn': '0031-8701',
                 u'title': u'dd',
+                u'url': u'url_dd',
                 u'location': 'sci',
                 u'title': u'dd',
                 u'years': ['1962']},
@@ -113,6 +117,7 @@ class RapidFileProcessorTest( TestCase ):
                 u'call_number': 'QP1 .E7',
                 u'issn': '0080-2042',
                 u'title': u'ee',
+                u'url': u'url_ee',
                 u'location': 'qs',
                 u'years': ['1937', '1938']},
              u'04927079sci1SIZETN24T2A2': {
@@ -120,17 +125,18 @@ class RapidFileProcessorTest( TestCase ):
                 u'call_number': '1-SIZE TN24.T2 A2',
                 u'issn': '0492-7079',
                 u'title': u'ff',
+                u'url': u'url_ff',
                 u'location': 'sci',
                 u'years': ['1971']}
             }
         self.assertEqual(
-            [[u'000294831919', u'0002-9483', u'aa', u'qs', 'foo', u'1-SIZE GN1 .A55', 1919, 1919],
-             [u'000296291926', u'0002-9629', u'bb',  u'sci', 'foo', u'R11 .A6', 1926, 1926],
-             [u'000296291928', u'0002-9629', u'bb',  u'sci', 'foo', u'R11 .A6', 1928, 1928],
-             [u'0022197X1991', u'0022-197X', u'cc',  u'rsmch', 'foo', u'JX1 .C58', 1991, 1992],
-             [u'003187011962', u'0031-8701', u'dd',  u'sci', 'foo', u'TR1 .P58', 1962, 1962],
-             [u'008020421937', u'0080-2042', u'ee',  u'qs', 'foo', u'QP1 .E7', 1937, 1938],
-             [u'049270791971', u'0492-7079', u'ff',  u'sci', 'foo', u'1-SIZE TN24.T2 A2', 1971, 1971]],
+            [[u'000294831919', u'0002-9483', u'aa', u'url_aa', u'qs', 'foo', u'1-SIZE GN1 .A55', 1919, 1919],
+             [u'000296291926', u'0002-9629', u'bb', u'url_bb',  u'sci', 'foo', u'R11 .A6', 1926, 1926],
+             [u'000296291928', u'0002-9629', u'bb', u'url_bb',  u'sci', 'foo', u'R11 .A6', 1928, 1928],
+             [u'0022197X1991', u'0022-197X', u'cc', u'url_cc',  u'rsmch', 'foo', u'JX1 .C58', 1991, 1992],
+             [u'003187011962', u'0031-8701', u'dd', u'url_dd',  u'sci', 'foo', u'TR1 .P58', 1962, 1962],
+             [u'008020421937', u'0080-2042', u'ee', u'url_ee',  u'qs', 'foo', u'QP1 .E7', 1937, 1938],
+             [u'049270791971', u'0492-7079', u'ff', u'url_ff',  u'sci', 'foo', u'1-SIZE TN24.T2 A2', 1971, 1971]],
             self.processor.build_holdings_lst( holdings_dct )
             )
 

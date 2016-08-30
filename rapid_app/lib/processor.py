@@ -18,8 +18,10 @@ class RapidFileProcessor( object ):
     def __init__(self, from_rapid_filepath, from_rapid_utf8_filepath ):
         log.debug( 'initialized source-path, ```{source}```; destination-utf8-path, ```{destination}```'.format(source=from_rapid_filepath, destination=from_rapid_utf8_filepath) )
         self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
+        # self.updated_holdings_defs_dct = {
+        #     'key': 0, 'issn': 1, 'title': 2, 'location': 3, 'building': 4, 'callnumber': 5, 'year_start': 6, 'year_end': 7 }  # original row-data has a 'location', not a 'building'
         self.updated_holdings_defs_dct = {
-            'key': 0, 'issn': 1, 'title': 2, 'location': 3, 'building': 4, 'callnumber': 5, 'year_start': 6, 'year_end': 7 }  # original row-data has a 'location', not a 'building'
+            'key': 0, 'issn': 1, 'title': 2, 'url': 3, 'location': 4, 'building': 5, 'callnumber': 6, 'year_start': 7, 'year_end': 8 }
         self.utf8_maker = Utf8Maker( from_rapid_filepath, from_rapid_utf8_filepath )
 
     def parse_file_from_rapid( self ):
@@ -97,9 +99,10 @@ class RapidFileProcessor( object ):
         building = issn_dct['building']
         callnumber = issn_dct['call_number']
         title = issn_dct['title']
+        url = issn_dct['url']
         for period_dct in issn_dct['years_held']:
             new_key = '%s%s' % ( issn.replace('-', ''), period_dct['start'] )
-            update_lst = [ new_key, issn, title, location, building, callnumber, period_dct['start'], period_dct['end'] ]
+            update_lst = [ new_key, issn, title, url, location, building, callnumber, period_dct['start'], period_dct['end'] ]
             log.debug( 'update_lst, `%s`' % update_lst )
             if update_lst not in holdings_lst:
                 log.debug( 'gonna update' )
@@ -118,10 +121,12 @@ class RapidFileProcessor( object ):
             Assumes an index on unique `key` field.
             Called by update_dev_db() """
         for row in holdings_lst:
+            log.debug( 'row, ```{}```'.format(pprint.pformat(row)) )
             title = PrintTitleDev()
             title.key = row[self.updated_holdings_defs_dct['key']]
             title.issn = row[self.updated_holdings_defs_dct['issn']]
             title.title = row[self.updated_holdings_defs_dct['title']]
+            title.url = row[self.updated_holdings_defs_dct['url']]
             title.start = row[self.updated_holdings_defs_dct['year_start']]
             title.end = row[self.updated_holdings_defs_dct['year_end']]
             title.location = row[self.updated_holdings_defs_dct['location']]
