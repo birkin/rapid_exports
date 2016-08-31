@@ -50,19 +50,5 @@ def create_ss_file( request ):
     ss_holder = []
     titles = PrintTitleDev.objects.all()
     for title in titles:
-        builder.build_row( issn, start, end, building, call_number, title, url )
+        builder.build_row( title.issn, title.start, title.end, title.building, title.call_number, title.title, title.url )
     return HttpResponse( 'coming' )
-
-
-
-    # key = models.CharField( max_length=20, primary_key=True )
-    # issn = models.CharField( max_length=15 )
-    # start = models.IntegerField()
-    # end = models.IntegerField( blank=True, null=True )
-    # location = models.CharField( 'other--location', max_length=25, blank=True, null=True )
-    # building = models.CharField( max_length=25, blank=True, null=True )
-    # call_number = models.CharField( max_length=50, blank=True, null=True )
-    # date_updated = models.DateTimeField( 'other--date-updated', auto_now=True )
-    # title = models.TextField( 'ss--title', blank=True, null=True )
-    # url = models.TextField( 'ss--url', blank=True, null=True )
-

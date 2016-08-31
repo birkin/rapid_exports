@@ -5,6 +5,7 @@ import logging, os, pprint
 from django.test import TestCase
 from rapid_app import settings_app
 from rapid_app.lib.processor import HoldingsDctBuilder, RapidFileProcessor, RowFixer, Utf8Maker
+from rapid_app.lib.ss_builder import SSBuilder
 from rapid_app.models import RapidFileGrabber  # TODO: move to lib from models
 from sqlalchemy import create_engine as alchemy_create_engine
 from sqlalchemy.orm import sessionmaker as alchemy_sessionmaker, scoped_session as alchemy_scoped_session
@@ -265,6 +266,45 @@ class RowFixerTest( TestCase ):
             )
 
     # end class RowFixerTest
+
+
+class SSBuilderTest( TestCase ):
+    """ Tests functions for building the serials-solutions file. """
+
+    def setUp( self ):
+        self.builder = SSBuilder()
+
+    def test__build_row( self ):
+        """ Checks built row. """
+        model_data = {
+            'issn': '0003-4398',
+            'year_start': 1999,
+            'year_end': 2007,
+            'building': 'Rock',
+            'callnumber': 'DC607.1 .A6',
+            'title': "Annales du Midi; revue archéologique, historique, et philologique de la France méridionale; sous les auspices de l'Université de Toulouse",
+            'url': 'https://search.library.brown.edu/catalog/?q=Annales+du+Midi+revue&f%5Bformat%5D%5B%5D=Periodical+Title'
+            }
+        result = self.builder.build_row( model_data )
+        self.assertEqual( {
+            'issn': '0003-4398',
+            'title': "Annales du Midi; revue archéologique, historique, et philologique de la France méridionale; sous les auspices de l'Université de Toulouse",
+            'type': 'Journal',
+            'url': 'https://search.library.brown.edu/catalog/?q=Annales+du+Midi+revue&f%5Bformat%5D%5B%5D=Periodical+Title',
+            'location': 'Rock - DC607.1 .A6',
+            'display_location_note': 'Yes',
+            'year_start': '1999',
+            'year_end': '2007',
+            },
+            self.builder.row_dct
+            )
+        self.assertEqual(
+            [
+            '0003-4398',
+            "Annales du Midi; revue archéologique, historique, et philologique de la France méridionale; sous les auspices de l'Université de Toulouse",
+            'bar' ],
+            self.builder.build_row( model_data )
+            )
 
 
 class SqlAlchemyTest( TestCase ):
