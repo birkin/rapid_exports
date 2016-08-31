@@ -19,8 +19,9 @@ class TasksHelper( object ):
             Called by views.tasks() """
         log.info( 'starting tasks' )
         d = {
-            'process_file_from_rapid_url': reverse('process_file_from_rapid_url'),
-            'check_data_url': reverse('admin:rapid_app_printtitledev_changelist'),
+            'process_file_from_rapid_url': reverse( 'process_file_from_rapid_url' ),
+            'check_data_url': reverse( 'admin:rapid_app_printtitledev_changelist' ),
+            'create_ss_file_url': reverse( 'create_ss_file_url' )
             }
         return d
 
