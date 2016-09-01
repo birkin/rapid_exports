@@ -29,12 +29,12 @@ class SSBuilder( object ):
             }
         self.row_dct = dct
         lst = [
-            dct['issn'],
             dct['title'],
             dct['type'],
             dct['url'],
             dct['location'],
             dct['display_location_note'],
+            dct['issn'],
             dct['year_start'],
             dct['year_end'],
             ]

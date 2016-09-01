@@ -299,12 +299,12 @@ class SSBuilderTest( TestCase ):
             self.builder.row_dct
             )
         self.assertEqual( [
-            '0003-4398',
             "Annales du Midi; revue archéologique, historique, et philologique de la France méridionale; sous les auspices de l'Université de Toulouse",
             'Journal',
             'https://search.library.brown.edu/catalog/?q=Annales+du+Midi+revue&f%5Bformat%5D%5B%5D=Periodical+Title',
             'Rock - DC607.1 .A6',
             'Yes',
+            '0003-4398',
             '1999',
             '2007'
             ],
