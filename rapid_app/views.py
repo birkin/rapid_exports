@@ -50,5 +50,14 @@ def create_ss_file( request ):
     ss_holder = []
     titles = PrintTitleDev.objects.all()
     for title in titles:
-        builder.build_row( title.issn, title.start, title.end, title.building, title.call_number, title.title, title.url )
-    return HttpResponse( 'coming' )
+        row_lst = builder.build_row( {
+            'issn': title.issn,
+            'year_start': title.start,
+            'year_end': title.end,
+            'building': title.building,
+            'callnumber': title.call_number,
+            'title': title.title,
+            'url': title.url } )
+    ss_holder.append( row_lst )
+    # builder.save_file( ss_holder )
+    return HttpResponse( 'file_saved' )
