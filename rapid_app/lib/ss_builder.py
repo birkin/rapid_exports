@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-import logging, pprint
+import csv, logging, pprint
 
 log = logging.getLogger(__name__)
 
@@ -40,6 +40,20 @@ class SSBuilder( object ):
             ]
         return lst
 
-    # def save_file( self, lines_lst, path )
+    def save_file( self, lines_lst, path ):
+        """ Saves csv file.
+            Called by views.create_ss_file() """
+        with open(path, 'w') as outcsv:
+            #configure writer to write standard csv file
+            writer = csv.writer( outcsv, delimiter=','.encode('utf-8'), quotechar='|'.encode('utf-8'), quoting=csv.QUOTE_MINIMAL, lineterminator='\n'.encode('utf-8') )
+            for line_lst in lines_lst:
+                utf8_line_list = []
+                for element in line_lst:
+                    utf8_line_list.append( element.encode('utf-8') )
+                #Write item to outcsv
+                writer.writerow(
+                    [ utf8_line_list[0], utf8_line_list[1], utf8_line_list[2], utf8_line_list[3], utf8_line_list[4], utf8_line_list[5], utf8_line_list[6], utf8_line_list[7] ]
+                    )
+        return
 
     # end class SSBuilder

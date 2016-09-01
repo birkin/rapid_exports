@@ -58,6 +58,6 @@ def create_ss_file( request ):
             'callnumber': title.call_number,
             'title': title.title,
             'url': title.url } )
-    ss_holder.append( row_lst )
-    # builder.save_file( ss_holder )
+        ss_holder.append( row_lst )
+    builder.save_file( lines_lst=ss_holder, path=os.environ['RAPID__TO_SS_FILEPATH']  )
     return HttpResponse( 'file_saved' )
