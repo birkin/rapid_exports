@@ -45,8 +45,8 @@ class SSBuilder( object ):
             Called by views.create_ss_file() """
         with open(path, 'w') as outcsv:
             #configure writer to write standard csv file
-            writer = csv.writer( outcsv, delimiter=','.encode('utf-8'), quotechar='|'.encode('utf-8'), quoting=csv.QUOTE_MINIMAL, lineterminator='\n'.encode('utf-8') )
-            for line_lst in lines_lst:
+            writer = csv.writer( outcsv, delimiter=','.encode('utf-8'), quotechar='"'.encode('utf-8'), quoting=csv.QUOTE_ALL, lineterminator='\n'.encode('utf-8') )
+            for line_lst in sorted(lines_lst):
                 utf8_line_list = []
                 for element in line_lst:
                     utf8_line_list.append( element.encode('utf-8') )
