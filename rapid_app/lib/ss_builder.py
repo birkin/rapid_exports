@@ -50,7 +50,11 @@ class SSBuilder( object ):
                 for line_lst in sorted(lines_lst):
                     utf8_line_list = []
                     for element in line_lst:
-                        utf8_line_list.append( element.encode('utf-8') )
+                        if element:
+                            element.encode('utf-8')
+                        else:
+                            element = ''.encode('utf-8')
+                        utf8_line_list.append( element )
                     #Write item to outcsv
                     writer.writerow(
                         [ utf8_line_list[0], utf8_line_list[1], utf8_line_list[2], utf8_line_list[3], utf8_line_list[4], utf8_line_list[5], utf8_line_list[6], utf8_line_list[7] ]
