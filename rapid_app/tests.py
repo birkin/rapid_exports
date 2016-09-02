@@ -285,7 +285,7 @@ class SSBuilderTest( TestCase ):
             'title': "Annales du Midi; revue archéologique, historique, et philologique de la France méridionale; sous les auspices de l'Université de Toulouse",
             'url': 'https://search.library.brown.edu/catalog/?q=Annales+du+Midi+revue&f%5Bformat%5D%5B%5D=Periodical+Title'
             }
-        result = self.builder.build_row( model_data )
+        result = self.builder.build_row( model_data )  # populates attribute row_dct
         self.assertEqual( {
             'issn': '0003-4398',
             'title': "Annales du Midi; revue archéologique, historique, et philologique de la France méridionale; sous les auspices de l'Université de Toulouse",
@@ -310,6 +310,19 @@ class SSBuilderTest( TestCase ):
             ],
             self.builder.build_row( model_data )
             )
+
+    def test__save_file( self ):
+        """ Checks file save output. """
+        lines_lst = []
+        lines_lst.append( ['bb', 'Chteni︠i︡a', '2', '3', '4', '5', '6', '7'] )
+        lines_lst.append( ['aa', 'Sravnitelʹnai︠a︡ politika', '2', '3', '4', '5', '6', '7'] )
+        path = os.environ['RAPID__TEST_TO_SS_FILEPATH']
+        self.builder.save_file( lines_lst, path )
+        with open( path, 'r' ) as f:
+            lines = f.readlines()
+        self.assertEqual( 'aa', lines[0][0:3] )
+
+    # end class SSBuilderTest()
 
 
 class SqlAlchemyTest( TestCase ):
