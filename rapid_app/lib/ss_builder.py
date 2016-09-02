@@ -43,17 +43,20 @@ class SSBuilder( object ):
     def save_file( self, lines_lst, path ):
         """ Saves csv file.
             Called by views.create_ss_file() """
-        with open(path, 'w') as outcsv:
-            #configure writer to write standard csv file
-            writer = csv.writer( outcsv, delimiter=','.encode('utf-8'), quotechar='"'.encode('utf-8'), quoting=csv.QUOTE_ALL, lineterminator='\n'.encode('utf-8') )
-            for line_lst in sorted(lines_lst):
-                utf8_line_list = []
-                for element in line_lst:
-                    utf8_line_list.append( element.encode('utf-8') )
-                #Write item to outcsv
-                writer.writerow(
-                    [ utf8_line_list[0], utf8_line_list[1], utf8_line_list[2], utf8_line_list[3], utf8_line_list[4], utf8_line_list[5], utf8_line_list[6], utf8_line_list[7] ]
-                    )
+        try:
+            with open(path, 'w') as outcsv:
+                #configure writer to write standard csv file
+                writer = csv.writer( outcsv, delimiter=','.encode('utf-8'), quotechar='"'.encode('utf-8'), quoting=csv.QUOTE_ALL, lineterminator='\n'.encode('utf-8') )
+                for line_lst in sorted(lines_lst):
+                    utf8_line_list = []
+                    for element in line_lst:
+                        utf8_line_list.append( element.encode('utf-8') )
+                    #Write item to outcsv
+                    writer.writerow(
+                        [ utf8_line_list[0], utf8_line_list[1], utf8_line_list[2], utf8_line_list[3], utf8_line_list[4], utf8_line_list[5], utf8_line_list[6], utf8_line_list[7] ]
+                        )
+        except Exception as e:
+            log.error( 'exception saving file, ```{}```'.format(unicode(repr(e))) )
         return
 
     # end class SSBuilder
