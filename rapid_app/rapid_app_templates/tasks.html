@@ -35,11 +35,11 @@ Rapid Manager - tasks
 <p id="grab_file_from_rapid">
     Grab File From Rapid -- clickable link coming
     <ul>
-        <li>For now, put file at: `({{ file_data.host }}) {{ file_data.path }}`</li>
-        {% if file_data.exists %}
+        <li>For now, put file at: `({{ grab_file_data.host }}) {{ grab_file_data.path }}`</li>
+        {% if grab_file_data.exists %}
         <li>File currently exists at that path.</li>
-        <li>Date last changed: {{ file_data.date }}</li>
-        <li>Size: {{ file_data.size }}</li>
+        <li>Date last changed: {{ grab_file_data.date }}</li>
+        <li>Size: {{ grab_file_data.size }}</li>
         {% endif %}
     </ul>
 </p>

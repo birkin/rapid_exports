@@ -19,16 +19,16 @@ class TasksHelper( object ):
         """ Prepares data.
             Called by views.tasks() """
         log.info( 'starting tasks' )
-        file_dct = self._get_file_data()
+        grab_file_dct = self._make_grab_file_dct()
         d = {
-            'file_data': {'exists': file_dct['exists'], 'host': request.get_host().decode('utf-8'), 'path': file_dct['start_fpath'], 'size': file_dct['size'], 'date': file_dct['date'] },
             'process_file_from_rapid_url': reverse( 'process_file_from_rapid_url' ),
             'check_data_url': reverse( 'admin:rapid_app_printtitledev_changelist' ),
-            'create_ss_file_url': reverse( 'create_ss_file_url' )
+            'create_ss_file_url': reverse( 'create_ss_file_url' ),
+            'grab_file_data': {'exists': grab_file_dct['exists'], 'host': request.get_host().decode('utf-8'), 'path': grab_file_dct['start_fpath'], 'size': grab_file_dct['size'], 'date': grab_file_dct['date'] },
             }
         return d
 
-    def _get_file_data( self ):
+    def _make_grab_file_dct( self ):
         """ Prepares file-data dct.
             Called by make_context() """
         file_dct = {}
