@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-import codecs, csv, datetime, itertools, logging, operator, pprint, shutil
+import codecs, csv, datetime, itertools, logging, operator, pprint, shutil, urllib
 import requests
 from django.utils.http import urlquote_plus
 from rapid_app import settings_app
@@ -52,12 +52,12 @@ class RapidFileProcessor( object ):
             Main work is taking the multiple year entries and making ranges.
             Called by parse_file_from_rapid() """
         holdings_lst = []
-        for ( key, val ) in holdings_dct.items():
-            year_lst = val['years']
+        for ( key, dct_val ) in holdings_dct.items():
+            year_lst = dct_val['years']
             log.debug( 'year_lst, `%s`' % year_lst )
             holdings_dct[key]['years_contig'] = self._contigify_list( year_lst )
             holdings_dct[key]['years_held'] = self._build_years_held( holdings_dct[key]['years_contig'] )
-            holdings_lst = self._update_holdings_lst( holdings_lst, val )
+            holdings_lst = self._update_holdings_lst( holdings_lst, dct_val )
         sorted_lst = sorted( holdings_lst )
         log.info( 'holdings_lst, ```%s```' % pprint.pformat(sorted_lst) )
         return sorted_lst
@@ -356,9 +356,25 @@ class HoldingsDctBuilder( object ):
             except:
                 pass
         search_title = ' '.join( new_word_list )
-        quoted_title = urlquote_plus( search_title )
-        url = 'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q={}'.format( quoted_title )
+        params = { 'f[format][]': 'Periodical Title', 'q': search_title }
+        url = 'https://search.library.brown.edu/catalog/?{}'.format( urllib.urlencode(params) )
         return url
+
+    # def _build_url( self, title ):
+    #     """ Builds search-url.
+    #         Eventually should be able to use good url as-is -- this works around current encoding issue.
+    #             Testing shows that an incorrectly encoded search will not return results, but eliminating the problemmatic world will. """
+    #     new_word_list = []
+    #     for word in title.split():
+    #         try:
+    #             word.encode( 'ascii' )
+    #             new_word_list.append( word )
+    #         except:
+    #             pass
+    #     search_title = ' '.join( new_word_list )
+    #     quoted_title = urlquote_plus( search_title )
+    #     url = 'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q={}'.format( quoted_title )
+    #     return url
 
     # end class HoldingsDctBuilder
 

@@ -166,9 +166,17 @@ class HoldingsDctBuilderTest( TestCase ):
         """ Checks url built from title. """
         title = '5th IEEE International Workshop on Object-Orientation in Operating Systems'
         self.assertEqual(
-            'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q=5th+IEEE+International+Workshop+on+Object-Orientation+in+Operating+Systems',
+            'https://search.library.brown.edu/catalog/?q=5th+IEEE+International+Workshop+on+Object-Orientation+in+Operating+Systems&f%5Bformat%5D%5B%5D=Periodical+Title',
             self.builder._build_url( title )
             )
+
+    # def test__build_url( self ):
+    #     """ Checks url built from title. """
+    #     title = '5th IEEE International Workshop on Object-Orientation in Operating Systems'
+    #     self.assertEqual(
+    #         'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q=5th+IEEE+International+Workshop+on+Object-Orientation+in+Operating+Systems',
+    #         self.builder._build_url( title )
+    #         )
 
     def test__build_url_nonascii( self ):
         """ Checks temporary handling of non-ascii text. """
