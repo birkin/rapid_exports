@@ -28,7 +28,7 @@ class TasksHelper( object ):
             'check_data_url': reverse( 'admin:rapid_app_printtitledev_changelist' ),
             'create_ss_file_url': reverse( 'create_ss_file_url' ),
             'grab_file_data': {'exists': grab_file_dct['exists'], 'host': request.get_host().decode('utf-8'), 'path': grab_file_dct['start_fpath'], 'size': grab_file_dct['size'], 'date': grab_file_dct['date'] },
-            'process_file_data': { 'status': process_dct['status'], 'percent_done': 10, 'time_left': 8, 'date': '`{}`'.format( unicode(datetime.datetime.now()) ) },
+            'process_file_data': { 'status': process_dct['status'], 'percent_done': process_dct['percent_done'], 'time_left': process_dct['time_left'], 'last_run': '`{}`'.format( process_dct['last_run'] ) },
             }
         return d
 
@@ -56,6 +56,14 @@ class TasksHelper( object ):
             p.save()
         tracker_data = ProcessorTracker.objects.all()[0]
         process_dct['status'] = tracker_data.current_status
+        process_dct['last_run'] = tracker_data.procesing_ended
+        try:
+            recent_processing_dct = json.loads( tracker_data.recent_processing )
+            process_dct['percent_done'] = recent_processing_dct['percent_done']
+            process_dct['time_left'] = recent_processing_dct['time_left']
+        except Exception as e:
+            process_dct['percent_done'] = 'N/A'
+            process_dct['time_left'] = 'N/A'
         return process_dct
 
 
