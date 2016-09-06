@@ -6,6 +6,7 @@ import json, logging
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
+from rapid_app import settings_app
 
 log = logging.getLogger(__name__)
 
@@ -19,11 +20,18 @@ class TasksHelper( object ):
             Called by views.tasks() """
         log.info( 'starting tasks' )
         d = {
+            'file_data': {'exists': True, 'host': 'the_host', 'path': 'the_path', 'size': '718MB', 'date': 'foo_date'},
             'process_file_from_rapid_url': reverse( 'process_file_from_rapid_url' ),
             'check_data_url': reverse( 'admin:rapid_app_printtitledev_changelist' ),
             'create_ss_file_url': reverse( 'create_ss_file_url' )
             }
         return d
+
+    def _get_file_data( self ):
+        """ Prepares file-data dct.
+            Called by make_context() """
+        start_fpath = settings_app.FROM_RAPID_FILEPATH
+        return start_fpath
 
     def make_response( self, request, data ):
         """ Prepares response.
