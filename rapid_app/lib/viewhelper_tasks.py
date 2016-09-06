@@ -52,18 +52,17 @@ class TasksHelper( object ):
         process_dct = {}
         results = ProcessorTracker.objects.all()  # only one record
         if not results:
-            p = ProcessorTracker( current_status='not_yet_processed' )
+            p = ProcessorTracker(
+                current_status='not_yet_processed',
+                recent_processing=json.dumps( {'percent_done': 'N/A', 'time_left': 'N/A'}, sort_keys=True, indent=2 )
+                )
             p.save()
         tracker_data = ProcessorTracker.objects.all()[0]
+        recent_processing_dct = json.loads( tracker_data.recent_processing )
         process_dct['status'] = tracker_data.current_status
         process_dct['last_run'] = tracker_data.procesing_ended
-        try:
-            recent_processing_dct = json.loads( tracker_data.recent_processing )
-            process_dct['percent_done'] = recent_processing_dct['percent_done']
-            process_dct['time_left'] = recent_processing_dct['time_left']
-        except Exception as e:
-            process_dct['percent_done'] = 'N/A'
-            process_dct['time_left'] = 'N/A'
+        process_dct['percent_done'] = recent_processing_dct['percent_done']
+        process_dct['time_left'] = recent_processing_dct['time_left']
         return process_dct
 
 

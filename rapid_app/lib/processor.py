@@ -6,7 +6,7 @@ import codecs, csv, datetime, itertools, logging, operator, pprint, shutil, urll
 import requests
 from django.utils.http import urlquote_plus
 from rapid_app import settings_app
-from rapid_app.models import PrintTitleDev
+from rapid_app.models import PrintTitleDev, ProcessorTracker
 
 log = logging.getLogger(__name__)
 
@@ -287,7 +287,18 @@ class HoldingsDctBuilder( object ):
         if row_idx % tn_prcnt == 0:  # uses modulo
             prcnt_done = row_idx / (tn_prcnt/10)
             log.info( '%s percent done (on row %s of %s)' % (prcnt_done, row_idx+1, entries_count) )  # +1 for 0 index
+            self._update_db_tracker( entries_count, prcnt_done )
         return
+
+
+
+    def _update_db_tracker( self, entries_count, prcnt_done ):
+        """ Updates db processing tracker.
+            Called by track_row() """
+        tracker = ProcessorTracker.objects.all()[0]
+        recent_processing_dct = json.loads( tracker_data.recent_processing )
+
+
 
     def process_file_row( self, row ):
         """ Fixes row if necessary and builds elements.
