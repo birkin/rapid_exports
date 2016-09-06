@@ -47,8 +47,8 @@ class PrintTitleDev( models.Model ):
 class ProcessorTracker( models.Model ):
     """ Tracks current-status and recent-processing. """
     current_status = models.CharField( max_length=50, blank=True, null=True )
-    processing_started = models.DateTimeField()
-    procesing_ended = models.DateTimeField()
+    processing_started = models.DateTimeField( blank=True, null=True )
+    procesing_ended = models.DateTimeField( blank=True, null=True )
     recent_processing = models.TextField( blank=True, null=True )
 
     def __unicode__(self):
