@@ -36,6 +36,11 @@ Rapid Manager - tasks
     Grab File From Rapid -- clickable link coming
     <ul>
         <li>For now, put file at: `({{ file_data.host }}) {{ file_data.path }}`</li>
+        {% if file_data.exists %}
+        <li>File currently exists at that path.</li>
+        <li>Date last changed: {{ file_data.date }}</li>
+        <li>Size: {{ file_data.size }}</li>
+        {% endif %}
     </ul>
 </p>
 
