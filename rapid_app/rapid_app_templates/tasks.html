@@ -47,8 +47,11 @@ Rapid Manager - tasks
 <p id="process_file_from_rapid">
     <a href={{ process_file_from_rapid_url }}>Process File From Rapid</a>
     <ul>
-        <li>Takes 15-20 minutes.</li>
-        <li>You can close browser window and processing will continue just fine.</li>
+        <li>(Takes 15-20 minutes; you can close browser window and processing will continue just fine.)</li>
+        <li>Last run: {{ process_file_data.date }}</li>
+        <li>Current status: `{{ process_file_data.status }}`</li>
+        <li>% done: {{ process_file_data.percent_done }}</li>
+        <li>minutes left: {{ process_file_data.time_left }}</li>
     </ul>
 </p>
 

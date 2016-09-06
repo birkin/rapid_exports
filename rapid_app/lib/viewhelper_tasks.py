@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-import json, logging, os, time
+import datetime, json, logging, os, time
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -20,11 +20,13 @@ class TasksHelper( object ):
             Called by views.tasks() """
         log.info( 'starting tasks' )
         grab_file_dct = self._make_grab_file_dct()
+        process_file_dct = self._make_process_file_dct()
         d = {
             'process_file_from_rapid_url': reverse( 'process_file_from_rapid_url' ),
             'check_data_url': reverse( 'admin:rapid_app_printtitledev_changelist' ),
             'create_ss_file_url': reverse( 'create_ss_file_url' ),
             'grab_file_data': {'exists': grab_file_dct['exists'], 'host': request.get_host().decode('utf-8'), 'path': grab_file_dct['start_fpath'], 'size': grab_file_dct['size'], 'date': grab_file_dct['date'] },
+            'process_file_data': { 'status': 'in_process', 'percent_done': 10, 'time_left': 8, 'date': '`{}`'.format( unicode(datetime.datetime.now()) ) },
             }
         return d
 
@@ -34,11 +36,17 @@ class TasksHelper( object ):
         file_dct = {}
         file_dct['start_fpath'] = settings_app.FROM_RAPID_FILEPATH
         file_dct['exists'] = True if os.path.isfile( settings_app.FROM_RAPID_FILEPATH ) else False
-        file_dct['date'] = time.ctime( os.path.getmtime(settings_app.FROM_RAPID_FILEPATH) )
+        file_dct['date'] = '`{}`'.format( time.ctime(os.path.getmtime(settings_app.FROM_RAPID_FILEPATH)) )
         (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat( settings_app.FROM_RAPID_FILEPATH )
         file_dct['size'] = '{0:.2f} MB'.format( (size/1024) / 1024.0 )  # MB
         log.debug( 'start_fpath, ```{}```'.format(file_dct['start_fpath']) )
         return file_dct
+
+    def _make_process_file_dct( self ):
+        """ Prepares process-file dct.
+            Called by make_context() """
+        process_dct = {}
+
 
     def make_response( self, request, data ):
         """ Prepares response.
