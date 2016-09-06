@@ -7,8 +7,10 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from rapid_app import settings_app
+from rapid_app.models import ProcessorTracker
 
 log = logging.getLogger(__name__)
+# processor_tracker = ProcessorTracker()
 
 
 class TasksHelper( object ):
@@ -20,13 +22,13 @@ class TasksHelper( object ):
             Called by views.tasks() """
         log.info( 'starting tasks' )
         grab_file_dct = self._make_grab_file_dct()
-        process_file_dct = self._make_process_file_dct()
+        process_dct = self._make_process_file_dct()
         d = {
             'process_file_from_rapid_url': reverse( 'process_file_from_rapid_url' ),
             'check_data_url': reverse( 'admin:rapid_app_printtitledev_changelist' ),
             'create_ss_file_url': reverse( 'create_ss_file_url' ),
             'grab_file_data': {'exists': grab_file_dct['exists'], 'host': request.get_host().decode('utf-8'), 'path': grab_file_dct['start_fpath'], 'size': grab_file_dct['size'], 'date': grab_file_dct['date'] },
-            'process_file_data': { 'status': 'in_process', 'percent_done': 10, 'time_left': 8, 'date': '`{}`'.format( unicode(datetime.datetime.now()) ) },
+            'process_file_data': { 'status': process_dct['status'], 'percent_done': 10, 'time_left': 8, 'date': '`{}`'.format( unicode(datetime.datetime.now()) ) },
             }
         return d
 
@@ -42,10 +44,20 @@ class TasksHelper( object ):
         log.debug( 'start_fpath, ```{}```'.format(file_dct['start_fpath']) )
         return file_dct
 
+
+
     def _make_process_file_dct( self ):
         """ Prepares process-file dct.
             Called by make_context() """
         process_dct = {}
+        results = ProcessorTracker.objects.all()  # only one record
+        if not results:
+            p = ProcessorTracker( current_status='not_yet_processed' )
+            p.save()
+        tracker_data = ProcessorTracker.objects.all()[0]
+        process_dct['status'] = tracker_data.current_status
+        return process_dct
+
 
 
     def make_response( self, request, data ):
