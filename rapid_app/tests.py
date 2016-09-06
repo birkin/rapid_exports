@@ -170,14 +170,6 @@ class HoldingsDctBuilderTest( TestCase ):
             self.builder._build_url( title )
             )
 
-    # def test__build_url( self ):
-    #     """ Checks url built from title. """
-    #     title = '5th IEEE International Workshop on Object-Orientation in Operating Systems'
-    #     self.assertEqual(
-    #         'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q=5th+IEEE+International+Workshop+on+Object-Orientation+in+Operating+Systems',
-    #         self.builder._build_url( title )
-    #         )
-
     def test__build_url_nonascii( self ):
         """ Checks temporary handling of non-ascii text. """
         title = 'Zeitschrift für anorganische und allgemeine Chemie'
@@ -319,6 +311,17 @@ class SSBuilderTest( TestCase ):
             self.builder.build_row( model_data )
             )
 
+    # def test__save_file( self ):
+    #     """ Checks file save output. """
+    #     lines_lst = []
+    #     lines_lst.append( ['bb', 'Chteni︠i︡a', '2', '3', '4', '5', '6', '7'] )
+    #     lines_lst.append( ['aa', 'Sravnitelʹnai︠a︡ politika', '2', '3', '4', '5', '6', '7'] )
+    #     path = os.environ['RAPID__TEST_TO_SS_FILEPATH']
+    #     self.builder.save_file( lines_lst, path )
+    #     with open( path, 'r' ) as f:
+    #         lines = f.readlines()
+    #     self.assertEqual( 'aa', lines[0][0:3] )
+
     def test__save_file( self ):
         """ Checks file save output. """
         lines_lst = []
@@ -328,7 +331,10 @@ class SSBuilderTest( TestCase ):
         self.builder.save_file( lines_lst, path )
         with open( path, 'r' ) as f:
             lines = f.readlines()
-        self.assertEqual( 'aa', lines[0][0:3] )
+        line = lines[0].decode( 'utf-8' )
+        # print 'type(line), ```{}```'.format( type(line) )
+        # print 'line, ```{}```'.format( line )
+        self.assertEqual( '"aa"', line[0:4] )
 
     # end class SSBuilderTest()
 

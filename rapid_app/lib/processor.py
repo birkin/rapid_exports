@@ -360,22 +360,6 @@ class HoldingsDctBuilder( object ):
         url = 'https://search.library.brown.edu/catalog/?{}'.format( urllib.urlencode(params) )
         return url
 
-    # def _build_url( self, title ):
-    #     """ Builds search-url.
-    #         Eventually should be able to use good url as-is -- this works around current encoding issue.
-    #             Testing shows that an incorrectly encoded search will not return results, but eliminating the problemmatic world will. """
-    #     new_word_list = []
-    #     for word in title.split():
-    #         try:
-    #             word.encode( 'ascii' )
-    #             new_word_list.append( word )
-    #         except:
-    #             pass
-    #     search_title = ' '.join( new_word_list )
-    #     quoted_title = urlquote_plus( search_title )
-    #     url = 'https://search.library.brown.edu/catalog/?f[format][]=Periodical%20Title&q={}'.format( quoted_title )
-    #     return url
-
     # end class HoldingsDctBuilder
 
 
