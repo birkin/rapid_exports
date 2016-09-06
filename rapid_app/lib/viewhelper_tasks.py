@@ -20,7 +20,7 @@ class TasksHelper( object ):
             Called by views.tasks() """
         log.info( 'starting tasks' )
         d = {
-            'file_data': {'exists': True, 'host': 'the_host', 'path': 'the_path', 'size': '718MB', 'date': 'foo_date'},
+            'file_data': {'exists': True, 'host': request.get_host().decode('utf-8'), 'path': self._get_file_data()['start_fpath'], 'size': '718MB', 'date': 'foo_date'},
             'process_file_from_rapid_url': reverse( 'process_file_from_rapid_url' ),
             'check_data_url': reverse( 'admin:rapid_app_printtitledev_changelist' ),
             'create_ss_file_url': reverse( 'create_ss_file_url' )
@@ -30,8 +30,10 @@ class TasksHelper( object ):
     def _get_file_data( self ):
         """ Prepares file-data dct.
             Called by make_context() """
-        start_fpath = settings_app.FROM_RAPID_FILEPATH
-        return start_fpath
+        file_dct = {}
+        file_dct['start_fpath'] = settings_app.FROM_RAPID_FILEPATH
+        log.debug( 'start_fpath, ```{}```'.format(file_dct['start_fpath']) )
+        return file_dct
 
     def make_response( self, request, data ):
         """ Prepares response.
