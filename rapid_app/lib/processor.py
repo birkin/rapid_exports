@@ -328,7 +328,8 @@ class HoldingsDctBuilder( object ):
             log.debug( 'records_done, `{}`'.format(records_done) )
             records_left = entries_count - records_done
             log.debug( 'records_left, `{}`'.format(records_left) )
-        time_left = records_left * average_time_per_record
+        seconds_left = records_left * average_time_per_record
+        time_left = seconds_left / 60
         log.debug( 'recent_processing_dct initially, ```{}```'.format(pprint.pformat(recent_processing_dct)) )
         recent_processing_dct['percent_done'] = prcnt_done
         recent_processing_dct['recent_times_per_record'] = recent_times_per_record
