@@ -299,6 +299,7 @@ class HoldingsDctBuilder( object ):
         """ Updates db processing tracker.
             Called by track_row() """
         log.debug( 'prcnt_done, `{prcnt}`; entries_count, `{cnt}`'.format(prcnt=prcnt_done, cnt=entries_count) )
+        log.debug( 'type(prcnt_done), `{}`'.format(type(prcnt_done)) )
         tracker = ProcessorTracker.objects.all()[0]
         recent_processing_dct = json.loads( tracker.recent_processing )
         ( start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record ) = (
@@ -323,7 +324,7 @@ class HoldingsDctBuilder( object ):
             records_left = 0
         else:
             status = 'in_process'
-            records_done = entries_count * (prcnt_done/100)
+            records_done = entries_count * (prcnt_done/100.0)
             log.debug( 'records_done, `{}`'.format(records_done) )
             records_left = entries_count - records_done
             log.debug( 'records_left, `{}`'.format(records_left) )
