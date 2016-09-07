@@ -287,16 +287,18 @@ class HoldingsDctBuilder( object ):
         if row_idx % tn_prcnt == 0:  # uses modulo
             prcnt_done = row_idx / (tn_prcnt/10)
             log.info( '%s percent done (on row %s of %s)' % (prcnt_done, row_idx+1, entries_count) )  # +1 for 0 index
-            self._update_db_tracker( entries_count, prcnt_done )
+            self._update_db_tracker( prcnt_done, 'in_process' )
+        elif row_idx == 0:
+            self._update_db_tracker( 0, 'started' )
         elif row_idx + 1 == entries_count:
-            prcnt_done = 100
-            self._update_db_tracker( entries_count, prcnt_done )
+            self._update_db_tracker( 100, 'complete' )
         return
 
 
-    def _update_db_tracker( self, entries_count, prcnt_done ):
+    def _update_db_tracker( self, prcnt_done, status ):
         """ Updates db processing tracker.
             Called by track_row() """
+        log.debug( 'prcnt_done, `{prcnt}`; status, `{status}`'.format(prcnt=prcnt_done, status=status) )
         tracker = ProcessorTracker.objects.all()[0]
         recent_processing_dct = json.loads( tracker.recent_processing )
         log.debug( 'recent_processing_dct initially, ```{}```'.format(pprint.pformat(recent_processing_dct)) )
@@ -304,6 +306,7 @@ class HoldingsDctBuilder( object ):
         log.debug( 'recent_processing_dct after update, ```{}```'.format(pprint.pformat(recent_processing_dct)) )
         jsn = json.dumps( recent_processing_dct )
         tracker.recent_processing = jsn
+        tracker.current_status = status
         tracker.save()
         log.debug( 'tracker updated' )
         return
