@@ -45,7 +45,11 @@ Rapid Manager - tasks
 </p>
 
 <p id="process_file_from_rapid">
+    {% if process_file_data.allow_processing %}
     <a href={{ process_file_from_rapid_url }}>Process File From Rapid</a>
+    {% else %}
+    <p>Process File From Rapid</p>
+    {% endif %}
     <ul>
         <li>(Takes 15-20 minutes; you can close browser window and processing will continue just fine.)</li>
         <li>Last run: {{ process_file_data.last_run }}</li>

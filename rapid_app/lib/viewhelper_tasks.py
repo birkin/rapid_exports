@@ -28,7 +28,7 @@ class TasksHelper( object ):
             'check_data_url': reverse( 'admin:rapid_app_printtitledev_changelist' ),
             'create_ss_file_url': reverse( 'create_ss_file_url' ),
             'grab_file_data': {'exists': grab_file_dct['exists'], 'host': request.get_host().decode('utf-8'), 'path': grab_file_dct['start_fpath'], 'size': grab_file_dct['size'], 'date': grab_file_dct['date'] },
-            'process_file_data': { 'status': process_dct['status'], 'percent_done': process_dct['percent_done'], 'time_left': process_dct['time_left'], 'last_run': '`{}`'.format( process_dct['last_run'] ) },
+            'process_file_data': { 'status': process_dct['status'], 'percent_done': process_dct['percent_done'], 'time_left': process_dct['time_left'], 'last_run': '`{}`'.format( process_dct['last_run'] ), 'allow_processing': process_dct['allow_processing'] },
             }
         return d
 
@@ -44,12 +44,10 @@ class TasksHelper( object ):
         log.debug( 'start_fpath, ```{}```'.format(file_dct['start_fpath']) )
         return file_dct
 
-
-
     def _make_process_file_dct( self ):
         """ Prepares process-file dct.
             Called by make_context() """
-        process_dct = {}
+        process_dct = { 'allow_processing': True }
         results = ProcessorTracker.objects.all()  # only one record
         log.debug( 'results, ```{}```'.format(results) )
         if not results:
@@ -66,9 +64,9 @@ class TasksHelper( object ):
         process_dct['last_run'] = tracker_data.processing_ended
         process_dct['percent_done'] = recent_processing_dct['percent_done']
         process_dct['time_left'] = recent_processing_dct['time_left']
+        if tracker_data.current_status == 'in_process':
+            process_dct['allow_processing'] = False
         return process_dct
-
-
 
     def make_response( self, request, data ):
         """ Prepares response.
