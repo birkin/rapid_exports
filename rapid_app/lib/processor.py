@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-import codecs, csv, datetime, itertools, logging, operator, pprint, shutil, urllib
+import codecs, csv, datetime, itertools, json, logging, operator, pprint, shutil, urllib
 import requests
 from django.utils.http import urlquote_plus
 from rapid_app import settings_app
@@ -288,15 +288,25 @@ class HoldingsDctBuilder( object ):
             prcnt_done = row_idx / (tn_prcnt/10)
             log.info( '%s percent done (on row %s of %s)' % (prcnt_done, row_idx+1, entries_count) )  # +1 for 0 index
             self._update_db_tracker( entries_count, prcnt_done )
+        elif row_idx + 1 == entries_count:
+            prcnt_done = 100
+            self._update_db_tracker( entries_count, prcnt_done )
         return
-
 
 
     def _update_db_tracker( self, entries_count, prcnt_done ):
         """ Updates db processing tracker.
             Called by track_row() """
         tracker = ProcessorTracker.objects.all()[0]
-        recent_processing_dct = json.loads( tracker_data.recent_processing )
+        recent_processing_dct = json.loads( tracker.recent_processing )
+        log.debug( 'recent_processing_dct initially, ```{}```'.format(pprint.pformat(recent_processing_dct)) )
+        recent_processing_dct['percent_done'] = prcnt_done
+        log.debug( 'recent_processing_dct after update, ```{}```'.format(pprint.pformat(recent_processing_dct)) )
+        jsn = json.dumps( recent_processing_dct )
+        tracker.recent_processing = jsn
+        tracker.save()
+        log.debug( 'tracker updated' )
+        return
 
 
 
