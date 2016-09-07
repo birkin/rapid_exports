@@ -53,6 +53,7 @@ class TasksHelper( object ):
         results = ProcessorTracker.objects.all()  # only one record
         log.debug( 'results, ```{}```'.format(results) )
         if not results:
+            log.debug( 'gonna add an initial record' )
             p = ProcessorTracker(
                 current_status='not_yet_processed',
                 recent_processing=json.dumps(
