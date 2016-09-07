@@ -17,7 +17,7 @@ class PrintTitleDevAdmin( admin.ModelAdmin ):
 
 class ProcessorTrackerAdmin( admin.ModelAdmin ):
     list_display = [
-        'current_status', 'processing_started', 'procesing_ended', 'recent_processing' ]
+        'current_status', 'processing_started', 'processing_ended', 'recent_processing' ]
     readonly_fields = list_display
 
 
