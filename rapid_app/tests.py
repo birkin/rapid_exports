@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-import logging, os, pprint
+import json, logging, os, pprint
 from django.test import TestCase
 from rapid_app import settings_app
 from rapid_app.lib.processor import HoldingsDctBuilder, RapidFileProcessor, RowFixer, Utf8Maker
 from rapid_app.lib.ss_builder import SSBuilder
-from rapid_app.models import RapidFileGrabber  # TODO: move to lib from models
+from rapid_app.models import RapidFileGrabber, ProcessorTracker  # TODO: move RapidFileGrabber to lib from models
 from sqlalchemy import create_engine as alchemy_create_engine
 from sqlalchemy.orm import sessionmaker as alchemy_sessionmaker, scoped_session as alchemy_scoped_session
 
@@ -145,13 +145,19 @@ class RapidFileProcessorTest( TestCase ):
 
 
 class HoldingsDctBuilderTest( TestCase ):
-    """ Tests models.HoldingsDctBuilder """
+    """ Tests lib.processor.HoldingsDctBuilder """
 
     def setUp( self ):
         """ Runs initialization. """
         self.builder = HoldingsDctBuilder(
             settings_app.TEST_FROM_RAPID_UTF8_FILEPATH,
             )
+        p = ProcessorTracker(
+            current_status='not_yet_processed',
+            recent_processing=json.dumps(
+                {'percent_done': 'N/A', 'time_left': 'N/A', 'recent_times_per_record': [], 'average_time_per_record': 0 }, sort_keys=True, indent=2 )
+            )
+        p.save()
 
     def test__build_holdings_elements( self):
         """ Checkds dct-entry prepared from row data.
