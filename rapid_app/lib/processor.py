@@ -331,30 +331,6 @@ class HoldingsDctBuilder( object ):
         log.debug( 'recent_times_per_record, ```{}```'.format(recent_times_per_record) )
         return recent_times_per_record
 
-    # def _check_percent_done( self, prcnt_done, entries_count, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record ):
-    #     """ Updates vars based on percent done.
-    #         Called by _update_db_tracker() """
-    #     if prcnt_done == 0:
-    #         status = 'started'
-    #         start_timestamp = datetime.datetime.now()
-    #         records_left = entries_count
-    #     elif prcnt_done == 100:
-    #         status = 'complete'
-    #         end_timestamp = datetime.datetime.now()
-    #         time_taken = end_timestamp - start_timestamp
-    #         time_taken_string = '{sec}.{microsec}'.format( sec=time_taken.seconds, microsec=time_taken.microseconds )
-    #         f = float( time_taken_string )
-    #         time_per_record = f / entries_count
-    #         recent_times_per_record.append( time_per_record )
-    #         recent_times_per_record = recent_times_per_record [0:4]
-    #         average_time_per_record = sum(recent_times_per_record) / float( len(recent_times_per_record) )
-    #         records_left = 0
-    #     else:
-    #         status = 'in_process'
-    #         records_done = entries_count * (prcnt_done/100.0)
-    #         records_left = entries_count - records_done
-    #     return ( status, records_left, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record )
-
     def _update_recent_processing( self, recent_processing_dct, prcnt_done, recent_times_per_record, time_left, average_time_per_record ):
         """ Updates recent_processing_dct and returns json.
             Called by _update_db_tracker() """
