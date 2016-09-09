@@ -278,17 +278,17 @@ class HoldingsDctBuilder( object ):
         return ( holdings_dct, csv_ref, entries_count )
 
     def track_row( self, row_idx, entries_count ):
-        """ For now, logs progress, can update status-db in future.
+        """ Logs progress and updates status-db.
             Called by build_holdings_dct() """
         tn_prcnt = int( entries_count * .1 )  # ten percent
         if row_idx % tn_prcnt == 0:  # uses modulo
             prcnt_done = row_idx / (tn_prcnt/10)
             log.info( '%s percent done (on row %s of %s)' % (prcnt_done, row_idx+1, entries_count) )  # +1 for 0 index
-            self.tracker_updater._update_db_tracker( prcnt_done, entries_count )
+            self.tracker_updater.update_db_tracker( prcnt_done, entries_count )
         elif row_idx == 0:
-            self.tracker_updater._update_db_tracker( 0, entries_count )
+            self.tracker_updater.update_db_tracker( 0, entries_count )
         elif row_idx + 1 == entries_count:
-            self.tracker_updater._update_db_tracker( 100, entries_count )
+            self.tracker_updater.update_db_tracker( 100, entries_count )
         return
 
     def process_file_row( self, row ):
@@ -366,9 +366,10 @@ class HoldingsDctBuilder( object ):
 
 
 class TrackerUpdater( object ):
-    """ Manages updating of ProcessorTracker table. """
+    """ Manages updating of ProcessorTracker table.
+        Main controller: update_db_tracker() """
 
-    def _update_db_tracker( self, prcnt_done, entries_count ):
+    def update_db_tracker( self, prcnt_done, entries_count ):
         """ Updates db processing tracker.
             Called by track_row() """
         tracker = ProcessorTracker.objects.all()[0]
@@ -385,7 +386,7 @@ class TrackerUpdater( object ):
 
     def _check_percent_done( self, prcnt_done, entries_count, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record ):
         """ Updates vars based on percent done.
-            Called by _update_db_tracker() """
+            Called by update_db_tracker() """
         if prcnt_done == 0:
             ( status, start_timestamp, records_left ) = ( 'started', datetime.datetime.now(), entries_count )
         elif prcnt_done == 100:
@@ -411,7 +412,7 @@ class TrackerUpdater( object ):
 
     def _update_recent_processing( self, recent_processing_dct, prcnt_done, recent_times_per_record, time_left, average_time_per_record ):
         """ Updates recent_processing_dct and returns json.
-            Called by _update_db_tracker() """
+            Called by update_db_tracker() """
         recent_processing_dct['percent_done'] = prcnt_done
         recent_processing_dct['recent_times_per_record'] = recent_times_per_record
         recent_processing_dct['time_left'] = time_left
@@ -422,7 +423,7 @@ class TrackerUpdater( object ):
 
     def _update_tracker_object( self, tracker, recent_processing_jsn, status, start_timestamp, end_timestamp ):
         """ Updates and saves tracker record.
-            Called by _update_db_tracker() """
+            Called by update_db_tracker() """
         tracker.recent_processing = recent_processing_jsn
         tracker.current_status = status
         tracker.processing_started = start_timestamp
