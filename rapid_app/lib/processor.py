@@ -230,6 +230,7 @@ class HoldingsDctBuilder( object ):
             }
         self.row_fixer = RowFixer( self.defs_dct )
         self.locations_dct = self.update_locations_dct()
+        self.tracker_updater = TrackerUpdater()
 
     def update_locations_dct( self ):
         """ Populates class attribute with locations dct, used to populate `building` field.
@@ -276,6 +277,20 @@ class HoldingsDctBuilder( object ):
         log.debug( 'entries_count, `%s`' % entries_count )
         return ( holdings_dct, csv_ref, entries_count )
 
+    # def track_row( self, row_idx, entries_count ):
+    #     """ For now, logs progress, can update status-db in future.
+    #         Called by build_holdings_dct() """
+    #     tn_prcnt = int( entries_count * .1 )  # ten percent
+    #     if row_idx % tn_prcnt == 0:  # uses modulo
+    #         prcnt_done = row_idx / (tn_prcnt/10)
+    #         log.info( '%s percent done (on row %s of %s)' % (prcnt_done, row_idx+1, entries_count) )  # +1 for 0 index
+    #         self._update_db_tracker( prcnt_done, entries_count )
+    #     elif row_idx == 0:
+    #         self._update_db_tracker( 0, entries_count )
+    #     elif row_idx + 1 == entries_count:
+    #         self._update_db_tracker( 100, entries_count )
+    #     return
+
     def track_row( self, row_idx, entries_count ):
         """ For now, logs progress, can update status-db in future.
             Called by build_holdings_dct() """
@@ -283,75 +298,78 @@ class HoldingsDctBuilder( object ):
         if row_idx % tn_prcnt == 0:  # uses modulo
             prcnt_done = row_idx / (tn_prcnt/10)
             log.info( '%s percent done (on row %s of %s)' % (prcnt_done, row_idx+1, entries_count) )  # +1 for 0 index
-            self._update_db_tracker( prcnt_done, entries_count )
+            # self._update_db_tracker( prcnt_done, entries_count )
+            self.tracker_updater._update_db_tracker( prcnt_done, entries_count )
         elif row_idx == 0:
-            self._update_db_tracker( 0, entries_count )
+            # self._update_db_tracker( 0, entries_count )
+            self.tracker_updater._update_db_tracker( 0, entries_count )
         elif row_idx + 1 == entries_count:
-            self._update_db_tracker( 100, entries_count )
+            # self._update_db_tracker( 100, entries_count )
+            self.tracker_updater._update_db_tracker( 100, entries_count )
         return
 
-    def _update_db_tracker( self, prcnt_done, entries_count ):
-        """ Updates db processing tracker.
-            Called by track_row() """
-        tracker = ProcessorTracker.objects.all()[0]
-        recent_processing_dct = json.loads( tracker.recent_processing ); log.debug( 'recent_processing_dct initially, ```{}```'.format(pprint.pformat(recent_processing_dct)) )
-        ( start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record ) = (
-            tracker.processing_started, tracker.processing_ended, recent_processing_dct['recent_times_per_record'] , recent_processing_dct['average_time_per_record'] )  # existing info
-        ( status, records_left, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record ) = self._check_percent_done(
-            prcnt_done, entries_count, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record )  # updated info
-        time_left = ( records_left * average_time_per_record ) / 60  # seconds-left / 60
-        recent_processing_jsn = self._update_recent_processing(
-            recent_processing_dct, prcnt_done, recent_times_per_record, time_left, average_time_per_record )
-        self._update_tracker_object( tracker, recent_processing_jsn, status, start_timestamp, end_timestamp )
-        return
+    # def _update_db_tracker( self, prcnt_done, entries_count ):
+    #     """ Updates db processing tracker.
+    #         Called by track_row() """
+    #     tracker = ProcessorTracker.objects.all()[0]
+    #     recent_processing_dct = json.loads( tracker.recent_processing ); log.debug( 'recent_processing_dct initially, ```{}```'.format(pprint.pformat(recent_processing_dct)) )
+    #     ( start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record ) = (
+    #         tracker.processing_started, tracker.processing_ended, recent_processing_dct['recent_times_per_record'] , recent_processing_dct['average_time_per_record'] )  # existing info
+    #     ( status, records_left, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record ) = self._check_percent_done(
+    #         prcnt_done, entries_count, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record )  # updated info
+    #     time_left = ( records_left * average_time_per_record ) / 60  # seconds-left / 60
+    #     recent_processing_jsn = self._update_recent_processing(
+    #         recent_processing_dct, prcnt_done, recent_times_per_record, time_left, average_time_per_record )
+    #     self._update_tracker_object( tracker, recent_processing_jsn, status, start_timestamp, end_timestamp )
+    #     return
 
-    def _check_percent_done( self, prcnt_done, entries_count, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record ):
-        """ Updates vars based on percent done.
-            Called by _update_db_tracker() """
-        if prcnt_done == 0:
-            ( status, start_timestamp, records_left ) = ( 'started', datetime.datetime.now(), entries_count )
-        elif prcnt_done == 100:
-            ( status, end_timestamp, records_left ) = ( 'complete', datetime.datetime.now(), 0 )
-            recent_times_per_record = self._update_recent_times_per_record( recent_times_per_record, start_timestamp, end_timestamp, entries_count )
-            average_time_per_record = sum(recent_times_per_record) / float( len(recent_times_per_record) )
-        else:
-            ( status, records_done ) = ( 'in_process', (entries_count * (prcnt_done/100.0)) )
-            records_left = entries_count - records_done
-        return ( status, records_left, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record )
+    # def _check_percent_done( self, prcnt_done, entries_count, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record ):
+    #     """ Updates vars based on percent done.
+    #         Called by _update_db_tracker() """
+    #     if prcnt_done == 0:
+    #         ( status, start_timestamp, records_left ) = ( 'started', datetime.datetime.now(), entries_count )
+    #     elif prcnt_done == 100:
+    #         ( status, end_timestamp, records_left ) = ( 'complete', datetime.datetime.now(), 0 )
+    #         recent_times_per_record = self._update_recent_times_per_record( recent_times_per_record, start_timestamp, end_timestamp, entries_count )
+    #         average_time_per_record = sum(recent_times_per_record) / float( len(recent_times_per_record) )
+    #     else:
+    #         ( status, records_done ) = ( 'in_process', (entries_count * (prcnt_done/100.0)) )
+    #         records_left = entries_count - records_done
+    #     return ( status, records_left, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record )
 
-    def _update_recent_times_per_record( self, recent_times_per_record, start_timestamp, end_timestamp, entries_count ):
-        """ Updates list of recent-times-per-record (seconds).
-            Called by: _check_percent_done() """
-        time_taken = end_timestamp - start_timestamp
-        time_taken_string = '{sec}.{microsec}'.format( sec=time_taken.seconds, microsec=time_taken.microseconds )
-        f = float( time_taken_string )
-        time_per_record = f / entries_count
-        recent_times_per_record.append( time_per_record )
-        recent_times_per_record = recent_times_per_record [0:4]
-        log.debug( 'recent_times_per_record, ```{}```'.format(recent_times_per_record) )
-        return recent_times_per_record
+    # def _update_recent_times_per_record( self, recent_times_per_record, start_timestamp, end_timestamp, entries_count ):
+    #     """ Updates list of recent-times-per-record (seconds).
+    #         Called by: _check_percent_done() """
+    #     time_taken = end_timestamp - start_timestamp
+    #     time_taken_string = '{sec}.{microsec}'.format( sec=time_taken.seconds, microsec=time_taken.microseconds )
+    #     f = float( time_taken_string )
+    #     time_per_record = f / entries_count
+    #     recent_times_per_record.append( time_per_record )
+    #     recent_times_per_record = recent_times_per_record [0:4]
+    #     log.debug( 'recent_times_per_record, ```{}```'.format(recent_times_per_record) )
+    #     return recent_times_per_record
 
-    def _update_recent_processing( self, recent_processing_dct, prcnt_done, recent_times_per_record, time_left, average_time_per_record ):
-        """ Updates recent_processing_dct and returns json.
-            Called by _update_db_tracker() """
-        recent_processing_dct['percent_done'] = prcnt_done
-        recent_processing_dct['recent_times_per_record'] = recent_times_per_record
-        recent_processing_dct['time_left'] = time_left
-        recent_processing_dct['average_time_per_record'] = average_time_per_record
-        log.debug( 'recent_processing_dct after update, ```{}```'.format(pprint.pformat(recent_processing_dct)) )
-        jsn = json.dumps( recent_processing_dct )
-        return jsn
+    # def _update_recent_processing( self, recent_processing_dct, prcnt_done, recent_times_per_record, time_left, average_time_per_record ):
+    #     """ Updates recent_processing_dct and returns json.
+    #         Called by _update_db_tracker() """
+    #     recent_processing_dct['percent_done'] = prcnt_done
+    #     recent_processing_dct['recent_times_per_record'] = recent_times_per_record
+    #     recent_processing_dct['time_left'] = time_left
+    #     recent_processing_dct['average_time_per_record'] = average_time_per_record
+    #     log.debug( 'recent_processing_dct after update, ```{}```'.format(pprint.pformat(recent_processing_dct)) )
+    #     jsn = json.dumps( recent_processing_dct )
+    #     return jsn
 
-    def _update_tracker_object( self, tracker, recent_processing_jsn, status, start_timestamp, end_timestamp ):
-        """ Updates and saves tracker record.
-            Called by _update_db_tracker() """
-        tracker.recent_processing = recent_processing_jsn
-        tracker.current_status = status
-        tracker.processing_started = start_timestamp
-        tracker.processing_ended = end_timestamp
-        tracker.save()
-        log.debug( 'tracker updated' )
-        return
+    # def _update_tracker_object( self, tracker, recent_processing_jsn, status, start_timestamp, end_timestamp ):
+    #     """ Updates and saves tracker record.
+    #         Called by _update_db_tracker() """
+    #     tracker.recent_processing = recent_processing_jsn
+    #     tracker.current_status = status
+    #     tracker.processing_started = start_timestamp
+    #     tracker.processing_ended = end_timestamp
+    #     tracker.save()
+    #     log.debug( 'tracker updated' )
+    #     return
 
     def process_file_row( self, row ):
         """ Fixes row if necessary and builds elements.
@@ -425,6 +443,75 @@ class HoldingsDctBuilder( object ):
         return url
 
     # end class HoldingsDctBuilder
+
+
+class TrackerUpdater( object ):
+    """ Manages updating of ProcessorTracker table. """
+
+    def _update_db_tracker( self, prcnt_done, entries_count ):
+        """ Updates db processing tracker.
+            Called by track_row() """
+        tracker = ProcessorTracker.objects.all()[0]
+        recent_processing_dct = json.loads( tracker.recent_processing ); log.debug( 'recent_processing_dct initially, ```{}```'.format(pprint.pformat(recent_processing_dct)) )
+        ( start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record ) = (
+            tracker.processing_started, tracker.processing_ended, recent_processing_dct['recent_times_per_record'] , recent_processing_dct['average_time_per_record'] )  # existing info
+        ( status, records_left, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record ) = self._check_percent_done(
+            prcnt_done, entries_count, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record )  # updated info
+        time_left = ( records_left * average_time_per_record ) / 60  # seconds-left / 60
+        recent_processing_jsn = self._update_recent_processing(
+            recent_processing_dct, prcnt_done, recent_times_per_record, time_left, average_time_per_record )
+        self._update_tracker_object( tracker, recent_processing_jsn, status, start_timestamp, end_timestamp )
+        return
+
+    def _check_percent_done( self, prcnt_done, entries_count, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record ):
+        """ Updates vars based on percent done.
+            Called by _update_db_tracker() """
+        if prcnt_done == 0:
+            ( status, start_timestamp, records_left ) = ( 'started', datetime.datetime.now(), entries_count )
+        elif prcnt_done == 100:
+            ( status, end_timestamp, records_left ) = ( 'complete', datetime.datetime.now(), 0 )
+            recent_times_per_record = self._update_recent_times_per_record( recent_times_per_record, start_timestamp, end_timestamp, entries_count )
+            average_time_per_record = sum(recent_times_per_record) / float( len(recent_times_per_record) )
+        else:
+            ( status, records_done ) = ( 'in_process', (entries_count * (prcnt_done/100.0)) )
+            records_left = entries_count - records_done
+        return ( status, records_left, start_timestamp, end_timestamp, recent_times_per_record, average_time_per_record )
+
+    def _update_recent_times_per_record( self, recent_times_per_record, start_timestamp, end_timestamp, entries_count ):
+        """ Updates list of recent-times-per-record (seconds).
+            Called by: _check_percent_done() """
+        time_taken = end_timestamp - start_timestamp
+        time_taken_string = '{sec}.{microsec}'.format( sec=time_taken.seconds, microsec=time_taken.microseconds )
+        f = float( time_taken_string )
+        time_per_record = f / entries_count
+        recent_times_per_record.append( time_per_record )
+        recent_times_per_record = recent_times_per_record [0:4]
+        log.debug( 'recent_times_per_record, ```{}```'.format(recent_times_per_record) )
+        return recent_times_per_record
+
+    def _update_recent_processing( self, recent_processing_dct, prcnt_done, recent_times_per_record, time_left, average_time_per_record ):
+        """ Updates recent_processing_dct and returns json.
+            Called by _update_db_tracker() """
+        recent_processing_dct['percent_done'] = prcnt_done
+        recent_processing_dct['recent_times_per_record'] = recent_times_per_record
+        recent_processing_dct['time_left'] = time_left
+        recent_processing_dct['average_time_per_record'] = average_time_per_record
+        log.debug( 'recent_processing_dct after update, ```{}```'.format(pprint.pformat(recent_processing_dct)) )
+        jsn = json.dumps( recent_processing_dct )
+        return jsn
+
+    def _update_tracker_object( self, tracker, recent_processing_jsn, status, start_timestamp, end_timestamp ):
+        """ Updates and saves tracker record.
+            Called by _update_db_tracker() """
+        tracker.recent_processing = recent_processing_jsn
+        tracker.current_status = status
+        tracker.processing_started = start_timestamp
+        tracker.processing_ended = end_timestamp
+        tracker.save()
+        log.debug( 'tracker updated' )
+        return
+
+    # end class TrackerUpdater()
 
 
 class RowFixer( object ):
