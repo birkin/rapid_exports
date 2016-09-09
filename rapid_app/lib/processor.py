@@ -94,12 +94,8 @@ class RapidFileProcessor( object ):
     def _update_holdings_lst( self, holdings_lst, issn_dct ):
         """ Builds final data lst entry.
             Called by build_holdings_lst() """
-        issn = issn_dct['issn']
-        location = issn_dct['location']
-        building = issn_dct['building']
-        callnumber = issn_dct['call_number']
-        title = issn_dct['title']
-        url = issn_dct['url']
+        ( issn, location, building ) = ( issn_dct['issn'], issn_dct['location'], issn_dct['building'] )
+        ( callnumber, title, url ) = ( issn_dct['call_number'], issn_dct['title'], issn_dct['url'] )
         for period_dct in issn_dct['years_held']:
             new_key = '%s%s' % ( issn.replace('-', ''), period_dct['start'] )
             update_lst = [ new_key, issn, title, url, location, building, callnumber, period_dct['start'], period_dct['end'] ]
@@ -279,7 +275,6 @@ class HoldingsDctBuilder( object ):
         csv_ref = csv.reader( open(self.from_rapid_utf8_filepath), dialect=csv.excel, delimiter=','.encode('utf-8') )
         log.debug( 'entries_count, `%s`' % entries_count )
         return ( holdings_dct, csv_ref, entries_count )
-
 
     def track_row( self, row_idx, entries_count ):
         """ For now, logs progress, can update status-db in future.
