@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import json, logging, os, pprint
 from django.test import TestCase
 from rapid_app import settings_app
-from rapid_app.lib.processor import HoldingsDctBuilder, RapidFileProcessor, RowFixer, Utf8Maker
+from rapid_app.lib.processor import HoldingsDctBuilder, RapidFileProcessor, RowFixer, Utf8Maker, TitleMaker
 from rapid_app.lib.ss_builder import SSBuilder
 from rapid_app.models import RapidFileGrabber, ProcessorTracker  # TODO: move RapidFileGrabber to lib from models
 from sqlalchemy import create_engine as alchemy_create_engine
@@ -256,6 +256,28 @@ class HoldingsDctBuilderTest( TestCase ):
             )
 
     # end class HoldingsDctBuilderTest
+
+
+class TitleMakerTest( TestCase ):
+    """ Tests unicode-title maker. """
+
+    def setUp( self ):
+        """ Runs initialization. """
+        self.maker = TitleMaker()
+
+    def test__build_title__unicode( self ):
+        """ Checks api lookup. """
+        issn = '0259-3750'  # 'Dong Wu fa lü xue bao = Soochow law review'
+        initial_title = 'Dong Wu fa l� xue bao = Soochow law review'
+        self.assertEqual( 'Dong Wu fa lü xue bao = Soochow law review', self.maker.build_title(issn, initial_title) )
+
+    def test__build_title__no_blacklight_match( self ):
+        """ No blacklight match; shouldn't need to be looked up though. """
+        issn = '0146-4787'  # 'SIAM journal on control and optimization'
+        initial_title = 'SIAM journal on control and optimization'
+        self.assertEqual( 'SIAM journal on control and optimization', self.maker.build_title(issn, initial_title) )
+
+    # end class TitleMakerTest
 
 
 class RowFixerTest( TestCase ):
