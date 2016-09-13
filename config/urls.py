@@ -15,7 +15,7 @@ urlpatterns = patterns('',
 
     url( r'^tasks/process_file_from_rapid/$',  'rapid_app.views.process_file_from_rapid', name='process_file_from_rapid_url' ),
 
-    url( r'^tasks/update_titles_table/$',  'rapid_app.views.update_titles', name='update_titles_url' ),
+    url( r'^tasks/update_titles_table/$',  'rapid_app.views.update_titles_table', name='update_titles_url' ),
 
     url( r'^tasks/create_ss_file/$',  'rapid_app.views.create_ss_file', name='create_ss_file_url' ),
 

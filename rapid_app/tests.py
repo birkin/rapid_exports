@@ -168,6 +168,15 @@ class HoldingsDctBuilderTest( TestCase ):
             self.builder._build_holdings_elements(row)
             )
 
+
+
+    def test__make_title( self ):
+        """ Checks api lookup. """
+        issn = '0259-3750'
+        self.assertEqual( 'blah', self.builder._make_title(issn) )
+
+
+
     def test__build_url( self ):
         """ Checks url built from title. """
         title = '5th IEEE International Workshop on Object-Orientation in Operating Systems'

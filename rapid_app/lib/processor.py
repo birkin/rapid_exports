@@ -24,6 +24,29 @@ class RapidFileProcessor( object ):
             'key': 0, 'issn': 1, 'title': 2, 'url': 3, 'location': 4, 'building': 5, 'callnumber': 6, 'year_start': 7, 'year_end': 8 }
         self.utf8_maker = Utf8Maker( from_rapid_filepath, from_rapid_utf8_filepath )
 
+    # def parse_file_from_rapid( self ):
+    #     """ Extracts print holdings from the file-from-rapid.
+    #         That file contains both print and online holdings.
+    #         Steps...
+    #           - a file from-rapid is created that is known to be utf8-good
+    #           - iterates through that file looking for `Print` entries; for those entries...  # HoldingsDctBuilder.build_holdings_dct()
+    #             - valid and massaged row-elements are obtained (sometimes a title contains unescaped commas)...  # HoldingsDctBuilder.process_file_row()
+    #             - if the entry doesn't exist, it's added to a holdings-dct (unique key on modified-issn & location & modified-callnumber)
+    #           - a list is created from the dct of all print holdings, primarily making year-ranges  # build_holdings_lst()
+    #           - the preview-db is updated  # update_dev_db()
+    #           - the list is returned to the view in case the user requests a json response; othewise, the response is the preview admin screen.
+    #         Called by viewhelper_processfile.ProcessFileFromRapidHelper.initiate_work() """
+    #     log.debug( 'starting parse' )
+    #     if self.utf8_maker.check_utf8() is False:
+    #         self.utf8_maker.make_utf8()
+    #     else:
+    #         self.utf8_maker.copy_utf8()
+    #     holdings_dct_builder = HoldingsDctBuilder( self.from_rapid_utf8_filepath )
+    #     holdings_dct = holdings_dct_builder.build_holdings_dct()
+    #     holdings_lst = self.build_holdings_lst( holdings_dct )
+    #     self.update_dev_db( holdings_lst )
+    #     return holdings_lst
+
     def parse_file_from_rapid( self ):
         """ Extracts print holdings from the file-from-rapid.
             That file contains both print and online holdings.
@@ -231,6 +254,7 @@ class HoldingsDctBuilder( object ):
         self.row_fixer = RowFixer( self.defs_dct )
         self.locations_dct = self.update_locations_dct()
         self.tracker_updater = TrackerUpdater()
+        self.good_titles_dct = {}  # populated by _make_title()
 
     def update_locations_dct( self ):
         """ Populates class attribute with locations dct, used to populate `building` field.
@@ -303,10 +327,10 @@ class HoldingsDctBuilder( object ):
     def _build_holdings_elements( self, row ):
         """ Extracts data from row-list.
             Called by _process_file_row() """
-        # log.debug( 'row, ```%s```' % pprint.pformat(row) )
         callnumber = row[self.defs_dct['callnumber']]
         issn = row[self.defs_dct['issn_num']]
-        title = row[self.defs_dct['title']]
+        # title = row[self.defs_dct['title']]
+        title = self._make_title( issn )
         location = row[self.defs_dct['location']]
         building = self._make_building( location )
         year = row[self.defs_dct['year']]
@@ -314,6 +338,19 @@ class HoldingsDctBuilder( object ):
         normalized_callnumber = callnumber.replace( '-', '' ).replace( ' ', '' ).replace( '.', '' )
         key = '%s%s%s' % ( normalized_issn, building, normalized_callnumber  )
         return ( key, issn, title, location, building, callnumber, year )
+
+
+
+    def _make_title( self, issn ):
+        """ Checks issn against built-dct or hits blacklight-solr.
+            Called by _build_holdings_elements() """
+        if issn in self.good_titles_dct.keys():
+            title = self.good_titles_dct[ issn ]
+        else:
+            title = 'foo'
+        return title
+
+
 
     def _make_building( self, location ):
         """ Adds building-location.

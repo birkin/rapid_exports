@@ -37,7 +37,7 @@ def process_file_from_rapid( request ):
     log.debug( 'response, ```%s```' % response )
     return response
 
-def update_titles( request ):
+def update_titles_table( request ):
     """ Backs up and updates easyAccess print-titles table. """
     log.debug( 'starting update_titles()')
     update_titles_hlpr.run_update( request )
