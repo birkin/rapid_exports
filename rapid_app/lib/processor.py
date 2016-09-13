@@ -501,36 +501,25 @@ class TitleMaker( object ):
     def check_solr( self, issn ):
         """ Looks up issn in discovery-solr.
             Called by build_title() """
-        ( title, solr_check ) = ( None, False )
-        r = requests.get( settings_app.DISCOVERY_SOLR_URL, params={'wt': 'json', 'indent': 'on', 'fq': 'issn_t:"{}"'.format( issn )} )
+        params = { 'wt': 'json', 'indent': 'on', 'fq': 'issn_t:"{}"'.format( issn ) }
+        r = requests.get( settings_app.DISCOVERY_SOLR_URL, params=params )
         log.debug( 'url, ```{}```'.format(r.url) )
         dct = r.json()
+        ( title, solr_check ) = self._parse_solr( dct )
+        return ( title, solr_check )
+
+    def _parse_solr( self, dct ):
+        """ Parses issn-query response.
+            Called by check_solr() """
         if dct['response']['numFound'] > 1:
             log.debug( 'multiples found, ```{}```'.format(pprint.pformat(dct)) )
         try:
-            ( title, solr_check ) = ( dct['response']['docs'][0]['title_display'], True )
+            title = dct['response']['docs'][0]['title_display']
+            solr_check = True
+            log.debug( 'returning title, ```{}```'.format(title) )
         except Exception as e:
-            log.debug( 'no solr-match found' )
+            log.debug( 'no `title_display` found' )
         return ( title, solr_check )
-
-    # def check_solr( self, issn ):
-    #     """ Looks up issn in discovery-solr.
-    #         Called by build_title() """
-    #     ( title, solr_check ) = ( None, False )
-    #     params = { 'wt': 'json', 'indent': 'on', 'fq': 'issn_t:"{}"'.format( issn ) }
-    #     r = requests.get( settings_app.DISCOVERY_SOLR_URL, params=params )
-    #     log.debug( 'url, ```{}```'.format(r.url) )
-    #     dct = r.json()
-    #     if dct['response']['numFound'] > 1:
-    #         log.debug( 'multiples found, ```{}```'.format(pprint.pformat(dct)) )
-    #     try:
-    #         title = dct['response']['docs'][0]['title_display']
-    #         solr_check = True
-    #     except Exception as e:
-    #         log.debug( 'no solr-match found' )
-    #     return ( title, solr_check )
-
-
 
     # end class TitleMaker
 
