@@ -330,7 +330,7 @@ class HoldingsDctBuilder( object ):
         callnumber = row[self.defs_dct['callnumber']]
         issn = row[self.defs_dct['issn_num']]
         # title = row[self.defs_dct['title']]
-        title = self._make_title( issn )
+        title = self._make_title( issn, row[self.defs_dct['title']] )
         location = row[self.defs_dct['location']]
         building = self._make_building( location )
         year = row[self.defs_dct['year']]
@@ -341,10 +341,16 @@ class HoldingsDctBuilder( object ):
 
 
 
-    def _make_title( self, issn ):
+    def _make_title( self, issn, title ):
         """ Checks issn against built-dct or hits blacklight-solr.
             Called by _build_holdings_elements() """
-        title = 'init'
+        title = title
+        try:
+            title.encode( 'ascii' )
+            log.debug( 'skipping plain title' )
+            return title
+        except Exception as e:
+            log.debug( 'will try solr lookup on issn, `{issn}`; initial-title, ```{title}```'.format(issn=issn, title=title) )
         if issn in self.good_titles_dct.keys():
             title = self.good_titles_dct[ issn ]
             log.debug( 'found in dct' )
@@ -358,7 +364,10 @@ class HoldingsDctBuilder( object ):
             if dct['response']['numFound'] > 1:
                 log.debug( 'multiples found, ```{}```'.format(pprint.pformat(dct)) )
             else:
-                title = dct['response']['docs'][0]['title_display']
+                try:
+                    title = dct['response']['docs'][0]['title_display']
+                except Exception as e:
+                    log.debug( 'no match found, returning original title, ```{}```'.format(title) )
             self.good_titles_dct[issn] = title
         return title
 
