@@ -18,34 +18,9 @@ class RapidFileProcessor( object ):
     def __init__(self, from_rapid_filepath, from_rapid_utf8_filepath ):
         log.debug( 'initialized source-path, ```{source}```; destination-utf8-path, ```{destination}```'.format(source=from_rapid_filepath, destination=from_rapid_utf8_filepath) )
         self.from_rapid_utf8_filepath = from_rapid_utf8_filepath  # converted utf8-filepath
-        # self.updated_holdings_defs_dct = {
-        #     'key': 0, 'issn': 1, 'title': 2, 'location': 3, 'building': 4, 'callnumber': 5, 'year_start': 6, 'year_end': 7 }  # original row-data has a 'location', not a 'building'
         self.updated_holdings_defs_dct = {
             'key': 0, 'issn': 1, 'title': 2, 'url': 3, 'location': 4, 'building': 5, 'callnumber': 6, 'year_start': 7, 'year_end': 8 }
         self.utf8_maker = Utf8Maker( from_rapid_filepath, from_rapid_utf8_filepath )
-
-    # def parse_file_from_rapid( self ):
-    #     """ Extracts print holdings from the file-from-rapid.
-    #         That file contains both print and online holdings.
-    #         Steps...
-    #           - a file from-rapid is created that is known to be utf8-good
-    #           - iterates through that file looking for `Print` entries; for those entries...  # HoldingsDctBuilder.build_holdings_dct()
-    #             - valid and massaged row-elements are obtained (sometimes a title contains unescaped commas)...  # HoldingsDctBuilder.process_file_row()
-    #             - if the entry doesn't exist, it's added to a holdings-dct (unique key on modified-issn & location & modified-callnumber)
-    #           - a list is created from the dct of all print holdings, primarily making year-ranges  # build_holdings_lst()
-    #           - the preview-db is updated  # update_dev_db()
-    #           - the list is returned to the view in case the user requests a json response; othewise, the response is the preview admin screen.
-    #         Called by viewhelper_processfile.ProcessFileFromRapidHelper.initiate_work() """
-    #     log.debug( 'starting parse' )
-    #     if self.utf8_maker.check_utf8() is False:
-    #         self.utf8_maker.make_utf8()
-    #     else:
-    #         self.utf8_maker.copy_utf8()
-    #     holdings_dct_builder = HoldingsDctBuilder( self.from_rapid_utf8_filepath )
-    #     holdings_dct = holdings_dct_builder.build_holdings_dct()
-    #     holdings_lst = self.build_holdings_lst( holdings_dct )
-    #     self.update_dev_db( holdings_lst )
-    #     return holdings_lst
 
     def parse_file_from_rapid( self ):
         """ Extracts print holdings from the file-from-rapid.
@@ -254,7 +229,8 @@ class HoldingsDctBuilder( object ):
         self.row_fixer = RowFixer( self.defs_dct )
         self.locations_dct = self.update_locations_dct()
         self.tracker_updater = TrackerUpdater()
-        self.good_titles_dct = {}  # populated by _make_title()
+        self.title_maker = TitleMaker()
+        # self.good_titles_dct = {}  # populated by _make_title()
 
     def update_locations_dct( self ):
         """ Populates class attribute with locations dct, used to populate `building` field.
@@ -329,8 +305,8 @@ class HoldingsDctBuilder( object ):
             Called by _process_file_row() """
         callnumber = row[self.defs_dct['callnumber']]
         issn = row[self.defs_dct['issn_num']]
-        # title = row[self.defs_dct['title']]
-        title = self._make_title( issn, row[self.defs_dct['title']] )
+        # title = self._make_title( issn, row[self.defs_dct['title']] )
+        title = self.title_maker.build_title( issn, row[self.defs_dct['title']] )
         location = row[self.defs_dct['location']]
         building = self._make_building( location )
         year = row[self.defs_dct['year']]
@@ -341,36 +317,36 @@ class HoldingsDctBuilder( object ):
 
 
 
-    def _make_title( self, issn, title ):
-        """ Checks issn against built-dct or hits blacklight-solr.
-            Called by _build_holdings_elements() """
-        title = title
-        try:
-            title.encode( 'ascii' )
-            log.debug( 'skipping plain title' )
-            return title
-        except Exception as e:
-            log.debug( 'will try solr lookup on issn, `{issn}`; initial-title, ```{title}```'.format(issn=issn, title=title) )
-        if issn in self.good_titles_dct.keys():
-            title = self.good_titles_dct[ issn ]
-            log.debug( 'found in dct' )
-        else:
-            url = settings_app.DISCOVERY_SOLR
-            params = {
-                'wt': 'json', 'indent': 'on', 'fq': 'issn_t:"{}"'.format( issn ) }
-            r = requests.get( url, params=params )
-            log.debug( 'url, ```{}```'.format(r.url) )
-            dct = r.json()
-            if dct['response']['numFound'] > 1:
-                log.debug( 'multiples found, ```{}```'.format(pprint.pformat(dct)) )
-                title = dct['response']['docs'][0]['title_display']
-            else:
-                try:
-                    title = dct['response']['docs'][0]['title_display']
-                except Exception as e:
-                    log.debug( 'no match found, returning original title, ```{}```'.format(title) )
-            self.good_titles_dct[issn] = title
-        return title
+    # def _make_title( self, issn, title ):
+    #     """ Checks issn against built-dct or hits blacklight-solr.
+    #         Called by _build_holdings_elements() """
+    #     title = title
+    #     try:
+    #         title.encode( 'ascii' )
+    #         log.debug( 'skipping plain title' )
+    #         return title
+    #     except Exception as e:
+    #         log.debug( 'will try solr lookup on issn, `{issn}`; initial-title, ```{title}```'.format(issn=issn, title=title) )
+    #     if issn in self.good_titles_dct.keys():
+    #         title = self.good_titles_dct[ issn ]
+    #         log.debug( 'found in dct' )
+    #     else:
+    #         url = settings_app.DISCOVERY_SOLR
+    #         params = {
+    #             'wt': 'json', 'indent': 'on', 'fq': 'issn_t:"{}"'.format( issn ) }
+    #         r = requests.get( url, params=params )
+    #         log.debug( 'url, ```{}```'.format(r.url) )
+    #         dct = r.json()
+    #         if dct['response']['numFound'] > 1:
+    #             log.debug( 'multiples found, ```{}```'.format(pprint.pformat(dct)) )
+    #             title = dct['response']['docs'][0]['title_display']
+    #         else:
+    #             try:
+    #                 title = dct['response']['docs'][0]['title_display']
+    #             except Exception as e:
+    #                 log.debug( 'no match found, returning original title, ```{}```'.format(title) )
+    #         self.good_titles_dct[issn] = title
+    #     return title
 
 
 
@@ -511,6 +487,7 @@ class TitleMaker( object ):
     def _parse_solr( self, dct ):
         """ Parses issn-query response.
             Called by check_solr() """
+        ( title, solr_check ) = ( None, False )
         if dct['response']['numFound'] > 1:
             log.debug( 'multiples found, ```{}```'.format(pprint.pformat(dct)) )
         try:

@@ -170,17 +170,17 @@ class HoldingsDctBuilderTest( TestCase ):
 
 
 
-    def test__make_title__unicode( self ):
-        """ Checks api lookup. """
-        issn = '0259-3750'  # 'Dong Wu fa lü xue bao = Soochow law review'
-        initial_title = 'Dong Wu fa l� xue bao = Soochow law review'
-        self.assertEqual( 'Dong Wu fa lü xue bao = Soochow law review', self.builder._make_title(issn, initial_title) )
+    # def test__make_title__unicode( self ):
+    #     """ Checks api lookup. """
+    #     issn = '0259-3750'  # 'Dong Wu fa lü xue bao = Soochow law review'
+    #     initial_title = 'Dong Wu fa l� xue bao = Soochow law review'
+    #     self.assertEqual( 'Dong Wu fa lü xue bao = Soochow law review', self.builder._make_title(issn, initial_title) )
 
-    def test__make_title__no_blacklight_match( self ):
-        """ No blacklight match; shouldn't need to be looked up though. """
-        issn = '0146-4787'  # 'SIAM journal on control and optimization'
-        initial_title = 'SIAM journal on control and optimization'
-        self.assertEqual( 'SIAM journal on control and optimization', self.builder._make_title(issn, initial_title) )
+    # def test__make_title__no_blacklight_match( self ):
+    #     """ No blacklight match; shouldn't need to be looked up though. """
+    #     issn = '0146-4787'  # 'SIAM journal on control and optimization'
+    #     initial_title = 'SIAM journal on control and optimization'
+    #     self.assertEqual( 'SIAM journal on control and optimization', self.builder._make_title(issn, initial_title) )
 
 
 
