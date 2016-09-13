@@ -173,7 +173,7 @@ class HoldingsDctBuilderTest( TestCase ):
     def test__make_title( self ):
         """ Checks api lookup. """
         issn = '0259-3750'
-        self.assertEqual( 'blah', self.builder._make_title(issn) )
+        self.assertEqual( 'Dong Wu fa lü xue bao = Soochow law review', self.builder._make_title(issn) )
 
 
 

@@ -344,17 +344,21 @@ class HoldingsDctBuilder( object ):
     def _make_title( self, issn ):
         """ Checks issn against built-dct or hits blacklight-solr.
             Called by _build_holdings_elements() """
+        title = 'init'
         if issn in self.good_titles_dct.keys():
             title = self.good_titles_dct[ issn ]
             log.debug( 'found in dct' )
         else:
             url = settings_app.DISCOVERY_SOLR
             params = {
-                'wt': json, 'indent': on, 'fq': 'issn_t:"{}"'.format( issn ) }
+                'wt': 'json', 'indent': 'on', 'fq': 'issn_t:"{}"'.format( issn ) }
             r = requests.get( url, params=params )
             log.debug( 'url, ```{}```'.format(r.url) )
             dct = r.json()
-            title = 'foo'
+            if dct['response']['numFound'] > 1:
+                log.debug( 'multiples found, ```{}```'.format(pprint.pformat(dct)) )
+            else:
+                title = dct['response']['docs'][0]['title_display']
             self.good_titles_dct[issn] = title
         return title
 
