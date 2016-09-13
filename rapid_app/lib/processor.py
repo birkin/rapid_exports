@@ -346,8 +346,16 @@ class HoldingsDctBuilder( object ):
             Called by _build_holdings_elements() """
         if issn in self.good_titles_dct.keys():
             title = self.good_titles_dct[ issn ]
+            log.debug( 'found in dct' )
         else:
+            url = settings_app.DISCOVERY_SOLR
+            params = {
+                'wt': json, 'indent': on, 'fq': 'issn_t:"{}"'.format( issn ) }
+            r = requests.get( url, params=params )
+            log.debug( 'url, ```{}```'.format(r.url) )
+            dct = r.json()
             title = 'foo'
+            self.good_titles_dct[issn] = title
         return title
 
 
