@@ -230,7 +230,6 @@ class HoldingsDctBuilder( object ):
         self.locations_dct = self.update_locations_dct()
         self.tracker_updater = TrackerUpdater()
         self.title_maker = TitleMaker()
-        # self.good_titles_dct = {}  # populated by _make_title()
 
     def update_locations_dct( self ):
         """ Populates class attribute with locations dct, used to populate `building` field.
@@ -315,41 +314,6 @@ class HoldingsDctBuilder( object ):
         key = '%s%s%s' % ( normalized_issn, building, normalized_callnumber  )
         return ( key, issn, title, location, building, callnumber, year )
 
-
-
-    # def _make_title( self, issn, title ):
-    #     """ Checks issn against built-dct or hits blacklight-solr.
-    #         Called by _build_holdings_elements() """
-    #     title = title
-    #     try:
-    #         title.encode( 'ascii' )
-    #         log.debug( 'skipping plain title' )
-    #         return title
-    #     except Exception as e:
-    #         log.debug( 'will try solr lookup on issn, `{issn}`; initial-title, ```{title}```'.format(issn=issn, title=title) )
-    #     if issn in self.good_titles_dct.keys():
-    #         title = self.good_titles_dct[ issn ]
-    #         log.debug( 'found in dct' )
-    #     else:
-    #         url = settings_app.DISCOVERY_SOLR
-    #         params = {
-    #             'wt': 'json', 'indent': 'on', 'fq': 'issn_t:"{}"'.format( issn ) }
-    #         r = requests.get( url, params=params )
-    #         log.debug( 'url, ```{}```'.format(r.url) )
-    #         dct = r.json()
-    #         if dct['response']['numFound'] > 1:
-    #             log.debug( 'multiples found, ```{}```'.format(pprint.pformat(dct)) )
-    #             title = dct['response']['docs'][0]['title_display']
-    #         else:
-    #             try:
-    #                 title = dct['response']['docs'][0]['title_display']
-    #             except Exception as e:
-    #                 log.debug( 'no match found, returning original title, ```{}```'.format(title) )
-    #         self.good_titles_dct[issn] = title
-    #     return title
-
-
-
     def _make_building( self, location ):
         """ Adds building-location.
             Called by _build_holdings_elements() """
@@ -399,39 +363,6 @@ class HoldingsDctBuilder( object ):
 
     # end class HoldingsDctBuilder
 
-
-
-
-    # def _make_title( self, issn, title ):
-    #     """ Checks issn against built-dct or hits blacklight-solr.
-    #         Called by _build_holdings_elements() """
-    #     title = title
-    #     try:
-    #         title.encode( 'ascii' )
-    #         log.debug( 'skipping plain title' )
-    #         return title
-    #     except Exception as e:
-    #         log.debug( 'will try solr lookup on issn, `{issn}`; initial-title, ```{title}```'.format(issn=issn, title=title) )
-    #     if issn in self.good_titles_dct.keys():
-    #         title = self.good_titles_dct[ issn ]
-    #         log.debug( 'found in dct' )
-    #     else:
-    #         url = settings_app.DISCOVERY_SOLR
-    #         params = {
-    #             'wt': 'json', 'indent': 'on', 'fq': 'issn_t:"{}"'.format( issn ) }
-    #         r = requests.get( url, params=params )
-    #         log.debug( 'url, ```{}```'.format(r.url) )
-    #         dct = r.json()
-    #         if dct['response']['numFound'] > 1:
-    #             log.debug( 'multiples found, ```{}```'.format(pprint.pformat(dct)) )
-    #             title = dct['response']['docs'][0]['title_display']
-    #         else:
-    #             try:
-    #                 title = dct['response']['docs'][0]['title_display']
-    #             except Exception as e:
-    #                 log.debug( 'no match found, returning original title, ```{}```'.format(title) )
-    #         self.good_titles_dct[issn] = title
-    #     return title
 
 class TitleMaker( object ):
     """ Tries to reliably get a unicode-friendly title from issn.
