@@ -263,7 +263,7 @@ class HoldingsDctBuilder( object ):
             ( key, issn, title, location, building, callnumber, year ) = self.process_file_row( row )
             holdings_dct = self.update_holdings_dct( holdings_dct, key, issn, title, location, building, callnumber, year )
         log.info( 'holdings_dct, ```%s```' % pprint.pformat(holdings_dct) )
-        log.debug( 'TEMP; issn-title dct, ```{}```'.format(self.title_maker.good_titles_dct) )
+        log.debug( 'TEMP; issn-title dct, ```{}```'.format(pprint.pformat(self.title_maker.good_titles_dct)) )
         return holdings_dct
 
     def prep_holdings_dct_processing( self ):
