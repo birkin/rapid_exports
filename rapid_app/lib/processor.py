@@ -348,19 +348,29 @@ class HoldingsDctBuilder( object ):
 
     def _build_url( self, title ):
         """ Builds search-url.
-            Eventually should be able to use good url as-is -- this works around current encoding issue.
-                Testing shows that an incorrectly encoded search will not return results, but eliminating the problemmatic world will. """
-        new_word_list = []
-        for word in title.split():
-            try:
-                word.encode( 'ascii' )
-                new_word_list.append( word )
-            except:
-                pass
-        search_title = ' '.join( new_word_list )
-        params = { 'f[format][]': 'Periodical Title', 'q': search_title }
+            Called by update_holdings_dct() """
+        params = {
+            'f[format][]': 'Periodical Title',
+            'q': title.encode( 'utf-8' )
+            }
         url = 'https://search.library.brown.edu/catalog/?{}'.format( urllib.urlencode(params) )
         return url
+
+    # def _build_url( self, title ):
+    #     """ Builds search-url.
+    #         Eventually should be able to use good url as-is -- this works around current encoding issue.
+    #             Testing shows that an incorrectly encoded search will not return results, but eliminating the problemmatic world will. """
+    #     new_word_list = []
+    #     for word in title.split():
+    #         try:
+    #             word.encode( 'ascii' )
+    #             new_word_list.append( word )
+    #         except:
+    #             pass
+    #     search_title = ' '.join( new_word_list )
+    #     params = { 'f[format][]': 'Periodical Title', 'q': search_title }
+    #     url = 'https://search.library.brown.edu/catalog/?{}'.format( urllib.urlencode(params) )
+    #     return url
 
     # end class HoldingsDctBuilder
 
