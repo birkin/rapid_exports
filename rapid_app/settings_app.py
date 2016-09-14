@@ -22,6 +22,7 @@ FROM_RAPID_FILEPATH = '%s/%s' % ( ZIPFILE_EXTRACT_DIR_PATH, ZIPFILE_EXTRACT_FILE
 FROM_RAPID_UTF8_FILEPATH = unicode( os.environ['RAPID__FROM_RAPID_UTF8_FILEPATH'] )
 LOCATIONS_URL = unicode( os.environ['RAPID__LOCATIONS_JSON_URL'] )
 DISCOVERY_SOLR_URL = unicode( os.environ['RAPID__DISCOVERY_SOLR_URL'] )
+ISSN_JSON_PATH = unicode( os.environ['RAPID__ISSN_DCT_PATH'] )
 
 ## update production db ##
 DB_CONNECTION_URL = unicode( os.environ['RAPID__MANUAL_DB_CONNECTION_URL'] )

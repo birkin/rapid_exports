@@ -370,7 +370,16 @@ class TitleMaker( object ):
         Main controller: build_title() """
 
     def __init__( self ):
-        self.good_titles_dct = {}  # populated by build_title()
+        self.good_titles_dct = {}  # updated by build_title()
+        self.initialize_good_titles_dct()
+
+    def initialize_good_titles_dct( self ):
+        """ Loads json.
+            Called by __init__() """
+        with open( settings_app.ISSN_JSON_PATH, 'r' ) as f:
+            self.good_titles_dct = json.loads( f.read() )
+        log.debug( 'len(self.good_titles_dct.keys()), `{}`'.format(len(self.good_titles_dct.keys())) )
+        return
 
     def build_title( self, issn, title ):
         """ Checks issn against built-dct or hits blacklight-solr.
@@ -413,10 +422,10 @@ class TitleMaker( object ):
         r = requests.get( settings_app.DISCOVERY_SOLR_URL, params=params )
         log.debug( 'url, ```{}```'.format(r.url) )
         dct = r.json()
-        ( title, solr_check ) = self._parse_solr( dct )
+        ( title, solr_check ) = self._parse_solr( dct, issn )
         return ( title, solr_check )
 
-    def _parse_solr( self, dct ):
+    def _parse_solr( self, dct, issn ):
         """ Parses issn-query response.
             Called by check_solr() """
         ( title, solr_check ) = ( None, False )
@@ -425,8 +434,10 @@ class TitleMaker( object ):
         try:
             title = dct['response']['docs'][0]['title_display']
             solr_check = True
-            log.debug( 'returning title, ```{}```'.format(title) )
+            self.good_titles_dct[issn] = title
+            log.debug( 'adding to dct, and returning, title, ```{}```'.format(title) )
         except Exception as e:
+            log.debug( 'e, ```{}```'.format(unicode(repr(e))) )
             log.debug( 'no `title_display` found' )
         return ( title, solr_check )
 
