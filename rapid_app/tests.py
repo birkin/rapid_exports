@@ -144,6 +144,22 @@ class RapidFileProcessorTest( TestCase ):
     # end class RapidFileProcessorTest
 
 
+class IssnDctTest( TestCase ):
+    """ Ensures any update to issn-to-unicode-title json file are formatted properly. """
+
+    def test_file(self):
+        """ Checks integrity of json file."""
+        try:
+            with open( settings_app.ISSN_JSON_PATH, 'r' ) as f:
+                json.loads( f.read() )
+            integrity_check = True
+        except:
+            integrity_check = False
+        self.assertEqual( True, integrity_check )
+
+    # end class IssnDctTest
+
+
 class HoldingsDctBuilderTest( TestCase ):
     """ Tests lib.processor.HoldingsDctBuilder """
 
