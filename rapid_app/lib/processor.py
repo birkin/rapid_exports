@@ -435,7 +435,7 @@ class TitleMaker( object ):
             title = dct['response']['docs'][0]['title_display']
             solr_check = True
             self.good_titles_dct[issn] = title
-            log.debug( 'adding to dct, and returning, title, ```{}```'.format(title) )
+            log.info( 'adding to dct, and returning, title, ```{}```'.format(title) )
         except Exception as e:
             log.debug( 'e, ```{}```'.format(unicode(repr(e))) )
             log.debug( 'no `title_display` found' )
