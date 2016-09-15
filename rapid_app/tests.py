@@ -281,17 +281,23 @@ class TitleMakerTest( TestCase ):
         """ Runs initialization. """
         self.maker = TitleMaker()
 
-    def test__build_title__unicode( self ):
+    def test__build_title__unicode_with_solr_match( self ):
         """ Checks api lookup. """
-        issn = '0259-3750'  # 'Dong Wu fa lü xue bao = Soochow law review'
+        issn = '0259-3750'
         initial_title = 'Dong Wu fa l� xue bao = Soochow law review'
         self.assertEqual( 'Dong Wu fa lü xue bao = Soochow law review', self.maker.build_title(issn, initial_title) )
 
-    def test__build_title__no_blacklight_match( self ):
-        """ No blacklight match; shouldn't need to be looked up though. """
-        issn = '0146-4787'  # 'SIAM journal on control and optimization'
+    def test__build_title__plain_ascii( self ):
+        """ Doesn't need to be looked up. """
+        issn = '0146-4787'
         initial_title = 'SIAM journal on control and optimization'
         self.assertEqual( 'SIAM journal on control and optimization', self.maker.build_title(issn, initial_title) )
+
+    def test__build_title__unicode_without_solr_match_match( self ):
+        """ Doesn't need to be looked up. """
+        issn = '0003-1577'
+        initial_title = 'Am�ricas'
+        self.assertEqual( 'Am�ricas', self.maker.build_title(issn, initial_title) )
 
     # end class TitleMakerTest
 
