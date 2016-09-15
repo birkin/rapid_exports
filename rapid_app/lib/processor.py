@@ -402,7 +402,7 @@ class TitleMaker( object ):
         ( found_title, solr_check ) = self.check_solr( issn )
         if solr_check:
             return found_title
-        log.debug( 'returning original title' )
+        log.debug( 'for issn, `{issn}` -- returning original title, ```{title}```'.format(issn=issn, title=title) )
         return title
 
     def is_ascii( self, title ):
