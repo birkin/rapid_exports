@@ -297,7 +297,9 @@ class TitleMakerTest( TestCase ):
         """ Doesn't need to be looked up. """
         issn = '0003-1577'
         initial_title = 'Am�ricas'
+        self.assertEqual( {}, self.maker.non_matches )
         self.assertEqual( 'Am�ricas', self.maker.build_title(issn, initial_title) )
+        self.assertEqual( {u'0003-1577': u'Am\ufffdricas'}, self.maker.non_matches )
 
     # end class TitleMakerTest
 

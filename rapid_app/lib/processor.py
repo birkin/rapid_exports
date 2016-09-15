@@ -262,9 +262,8 @@ class HoldingsDctBuilder( object ):
                 continue
             ( key, issn, title, location, building, callnumber, year ) = self.process_file_row( row )
             holdings_dct = self.update_holdings_dct( holdings_dct, key, issn, title, location, building, callnumber, year )
-        log.info( 'len(holdings_dct), `{}`'.format(len(holdings_dct.items())) )
-        log.info( 'holdings_dct, ```%s```' % pprint.pformat(holdings_dct) )
-        log.debug( 'TEMP; issn-title dct, ```{}```'.format(pprint.pformat(self.title_maker.good_titles_dct)) )
+        log.info( 'non-matched unicode titles, ```{}```'.format(pprint.pformat(self.title_maker.non_matches)) )
+        log.debug( 'len(holdings_dct), `{len}`; holdings_dct, ```{dct}```'.format(len=len(holdings_dct), dct=pprint.pformat(holdings_dct)) )
         return holdings_dct
 
     def prep_holdings_dct_processing( self ):
@@ -306,7 +305,6 @@ class HoldingsDctBuilder( object ):
             Called by _process_file_row() """
         callnumber = row[self.defs_dct['callnumber']]
         issn = row[self.defs_dct['issn_num']]
-        # title = self._make_title( issn, row[self.defs_dct['title']] )
         title = self.title_maker.build_title( issn, row[self.defs_dct['title']] )
         location = row[self.defs_dct['location']]
         building = self._make_building( location )
@@ -383,6 +381,7 @@ class TitleMaker( object ):
     def __init__( self ):
         self.good_titles_dct = {}  # updated by build_title()
         self.initialize_good_titles_dct()
+        self.non_matches = {}
 
     def initialize_good_titles_dct( self ):
         """ Loads json.
@@ -403,7 +402,7 @@ class TitleMaker( object ):
         ( found_title, solr_check ) = self.check_solr( issn )
         if solr_check:
             return found_title
-        log.info( 'for issn, `{issn}` -- returning original title, ```{title}```'.format(issn=issn, title=title) )
+        self.non_matches[ issn ] = title  # for later logging
         return title
 
     def is_ascii( self, title ):
