@@ -295,11 +295,11 @@ class TitleMakerTest( TestCase ):
 
     def test__build_title__unicode_without_solr_match_match( self ):
         """ Doesn't need to be looked up. """
-        issn = '0003-1577'
-        initial_title = 'Am�ricas'
+        issn = '1234-5678'
+        initial_title = 'f�oo'
         self.assertEqual( {}, self.maker.non_matches )
-        self.assertEqual( 'Am�ricas', self.maker.build_title(issn, initial_title) )
-        self.assertEqual( {u'0003-1577': u'Am\ufffdricas'}, self.maker.non_matches )
+        self.assertEqual( 'f�oo', self.maker.build_title(issn, initial_title) )
+        self.assertEqual( {u'1234-5678': u'f\ufffdoo'}, self.maker.non_matches )
 
     # end class TitleMakerTest
 
