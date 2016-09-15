@@ -212,7 +212,7 @@ class HoldingsDctBuilderTest( TestCase ):
         """ Checks temporary handling of non-ascii text. """
         title = 'Zeitschrift für anorganische und allgemeine Chemie'
         self.assertEqual(
-            'https://search.library.brown.edu/catalog/?q=Zeitschrift+anorganische+und+allgemeine+Chemie&f%5Bformat%5D%5B%5D=Periodical+Title',
+            'https://search.library.brown.edu/catalog/?q=Zeitschrift+f%C3%BCr+anorganische+und+allgemeine+Chemie&f%5Bformat%5D%5B%5D=Periodical+Title',
             self.builder._build_url( title )
             )
 
