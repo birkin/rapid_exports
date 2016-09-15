@@ -262,6 +262,7 @@ class HoldingsDctBuilder( object ):
                 continue
             ( key, issn, title, location, building, callnumber, year ) = self.process_file_row( row )
             holdings_dct = self.update_holdings_dct( holdings_dct, key, issn, title, location, building, callnumber, year )
+        log.info( 'len(holdings_dct), `{}`'.format(len(holdings_dct.items())) )
         log.info( 'holdings_dct, ```%s```' % pprint.pformat(holdings_dct) )
         log.debug( 'TEMP; issn-title dct, ```{}```'.format(pprint.pformat(self.title_maker.good_titles_dct)) )
         return holdings_dct
@@ -402,7 +403,7 @@ class TitleMaker( object ):
         ( found_title, solr_check ) = self.check_solr( issn )
         if solr_check:
             return found_title
-        log.debug( 'for issn, `{issn}` -- returning original title, ```{title}```'.format(issn=issn, title=title) )
+        log.info( 'for issn, `{issn}` -- returning original title, ```{title}```'.format(issn=issn, title=title) )
         return title
 
     def is_ascii( self, title ):
