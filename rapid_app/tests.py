@@ -380,7 +380,7 @@ class SSBuilderTest( TestCase ):
             )
 
     def test__save_file( self ):
-        """ Checks file save output. """
+        """ Checks file save output of csv-writer. """
         lines_lst = []
         lines_lst.append( ['bb', 'Chteni︠i︡a', '2', '3', '4', '5', '6', '7'] )
         lines_lst.append( ['aa', 'Sravnitelʹnai︠a︡ politika', '2', '3', '4', '5', '6', '7'] )
@@ -388,7 +388,7 @@ class SSBuilderTest( TestCase ):
         self.builder.save_file( lines_lst, path )
         with open( path, 'r' ) as f:
             lines = f.readlines()
-        line = lines[0].decode( 'utf-8' )
+        line = lines[0].decode( 'utf-8' )  # ```"aa","Sravnitelʹnai︠a︡ politika","2","3","4","5","6","7"``` (includes \n character at end)
         # print 'type(line), ```{}```'.format( type(line) )
         # print 'line, ```{}```'.format( line )
         self.assertEqual( '"aa"', line[0:4] )
